@@ -36,6 +36,10 @@ private slots:
 
     void on_loadFileButton_clicked();
 
+    void on_TableSelectionChanged();
+
+    void onAboutClicked(); //calling the about window from the addressbar
+
 private:
     Ui::MainWindow *ui;
 

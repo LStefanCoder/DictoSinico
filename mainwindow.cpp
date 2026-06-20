@@ -13,6 +13,7 @@
 #include <QListWidget>
 #include <QWidget>
 #include <QAbstractScrollArea>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -22,8 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->searchButton, &QPushButton::clicked, this, &MainWindow::on_searchButton_clicked);
     connect(ui->loadFileButton, &QPushButton::clicked, this, &MainWindow::on_loadFileButton_clicked);
-
-    // Initial Setup
+    //this is for when a row of the table was selected
+    connect(ui->tableWidget, &QTableWidget::itemSelectionChanged,
+            this, &MainWindow::on_TableSelectionChanged);
 
     ui->lineEdit->setText("");
 
@@ -147,6 +149,11 @@ void MainWindow::loadDictionaryFile(const QString &filePath)
 
 void MainWindow::on_searchButton_clicked()
 {
+    //if there has been a search made already, lines are hidden
+    //unhiding all hidden rows
+    for (int i = 0; i < ui->tableWidget->rowCount(); ++i)
+        ui->tableWidget->showRow(i);
+
     QString query = ui->lineEdit->text().trimmed();
 
     if (query.isEmpty()) {
@@ -167,6 +174,10 @@ void MainWindow::on_searchButton_clicked()
     // Since we are reading from memory, search is fast for standard RAM usage
     // If you want to highlight the query inside the words:
     for (int i = 0; i < ui->tableWidget->rowCount(); ++i) {
+        for(int j = 0; j < ui->tableWidget->columnCount(); ++j)
+        {
+
+        }
         QTableWidgetItem *w = ui->tableWidget->item(i, 0);
 
         if (w && w->text().contains(query, Qt::CaseInsensitive)) {
@@ -206,7 +217,7 @@ void MainWindow::on_clearButton_clicked()
         ui->tableWidget->showRow(i);
 
     ui->lineEdit->clear();
-    //ui->listWidget->clearSelection();
+
     QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
     foreach (QTableWidgetItem *item, selectedItems) {
         item->setSelected(false);
@@ -229,3 +240,37 @@ void MainWindow::on_loadFileButton_clicked()
     }
 }
 
+void MainWindow::on_TableSelectionChanged()
+{
+    //clear the labels if there is nothing is selected
+    if (!ui->tableWidget->selectionModel()->hasSelection()) {
+        ui->definitionEng->clear();
+        ui->definitionPinyin->clear();
+        ui->definitionSimp->clear();
+        ui->definitionTrad->clear();
+        return;
+    }
+
+    // get all selected indexes; require exactly one cell selected (optional)
+    QModelIndexList indexes = ui->tableWidget->selectionModel()->selectedIndexes();
+    if (indexes.isEmpty()) {
+        ui->definitionEng->clear();
+        ui->definitionPinyin->clear();
+        ui->definitionSimp->clear();
+        ui->definitionTrad->clear();
+        return;
+    }
+
+    // use row of the first selected index
+    int row = indexes.first().row();
+
+    auto textAt = [this, row](int col) -> QString {
+        QTableWidgetItem *it = ui->tableWidget->item(row, col);
+        return it ? it->text() : QString();
+    };
+
+    ui->definitionEng->setText(textAt(0));
+    ui->definitionPinyin->setText(textAt(1));
+    ui->definitionSimp->setText(textAt(2));
+    ui->definitionTrad->setText(textAt(3));
+}

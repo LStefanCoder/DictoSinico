@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="searchButton">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>230</y>
+      <x>440</x>
+      <y>10</y>
       <width>75</width>
       <height>24</height>
      </rect>
@@ -30,8 +30,8 @@
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>230</y>
+      <x>290</x>
+      <y>10</y>
       <width>113</width>
       <height>22</height>
      </rect>
@@ -40,8 +40,8 @@
    <widget class="QPushButton" name="loadFileButton">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>150</y>
+      <x>130</x>
+      <y>10</y>
       <width>91</width>
       <height>24</height>
      </rect>
@@ -53,8 +53,8 @@
    <widget class="QPushButton" name="clearButton">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>150</y>
+      <x>550</x>
+      <y>10</y>
       <width>75</width>
       <height>24</height>
      </rect>
@@ -66,11 +66,68 @@
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>290</y>
+      <x>130</x>
+      <y>60</y>
       <width>461</width>
       <height>261</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="definitionSimp">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>340</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Characters</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="definitionPinyin">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>340</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="definitionEng">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>370</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="definitionTrad">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>340</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
     </property>
    </widget>
   </widget>
