@@ -38,7 +38,9 @@ private slots:
 
     void on_TableSelectionChanged();
 
-    void onAboutClicked(); //calling the about window from the addressbar
+    void on_actionAbout_triggered(); // name must match your Designer action objectName; calling the about window from the addressbar
+
+    void on_actionPreferences_triggered();
 
 private:
     Ui::MainWindow *ui;

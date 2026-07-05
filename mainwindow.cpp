@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "preferencesdialog.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -14,6 +15,12 @@
 #include <QWidget>
 #include <QAbstractScrollArea>
 #include <QMessageBox>
+//#include <QApplication>
+
+//themes to be downloaded here: https://qt-material.readthedocs.io/en/latest/
+//https://github.com/hubenchang0515/QtTheme
+//https://qss-stock.devsecstudio.com/documentation.php
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -273,4 +280,16 @@ void MainWindow::on_TableSelectionChanged()
     ui->definitionPinyin->setText(textAt(1));
     ui->definitionSimp->setText(textAt(2));
     ui->definitionTrad->setText(textAt(3));
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox::about(this, tr("About"),
+                       tr("CeDict GUI\nVersion 1.0\n\nShort description..."));
+}
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    PreferencesDialog dlg(this);
+    dlg.exec(); // modal
 }
