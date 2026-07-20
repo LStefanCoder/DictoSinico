@@ -22,5 +22,9 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
+
+    //loading the dictionary at the start of the program
+    w.loadDictionaryFile("C:/Users/User/Documents/Projects/2026/CeDict/cedict_ts.txt");
+
     return QCoreApplication::exec();
 }

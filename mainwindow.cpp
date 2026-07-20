@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "preferencesdialog.h"
+#include "loadingdialog.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -16,6 +17,10 @@
 #include <QAbstractScrollArea>
 #include <QMessageBox>
 //#include <QApplication>
+
+//for the loading window
+#include <QFutureWatcher>
+#include <QtConcurrent>
 
 //themes to be downloaded here: https://qt-material.readthedocs.io/en/latest/
 //https://github.com/hubenchang0515/QtTheme
@@ -94,7 +99,33 @@ static bool parseCedictLine(const QString &line,
 
 void MainWindow::loadDictionaryFile(const QString &filePath)
 {
+    //creating the logic for the loading window to show during the loading of the dictionary
+    auto* loading = new LoadingDialog(this);
+
+    // Show immediately
+    loading->show();
+
+    // Keep the dialog alive until work finishes
+    auto* watcher = new QFutureWatcher<QByteArray>(this);
+
+    connect(watcher, &QFutureWatcher<QByteArray>::finished, this, [=]() {
+        // Retrieve results from the future and update your UI
+        QByteArray data = watcher->result();
+        // ... parse data / update editor ...
+
+        loading->close();
+        loading->deleteLater();
+        watcher->deleteLater();
+    });
+
     QFile file(filePath);
+
+    watcher->setFuture(QtConcurrent::run([filePath]() -> QByteArray {
+        QFile f(filePath);
+        if (!f.open(QIODevice::ReadOnly)) return {};
+        return f.readAll();
+    }));
+
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Cannot open dictionary file!");
         return;
@@ -179,15 +210,15 @@ void MainWindow::on_searchButton_clicked()
     bool found = false;
 
     // Since we are reading from memory, search is fast for standard RAM usage
-    // If you want to highlight the query inside the words:
+    // if you want to highlight the query inside the words:
     for (int i = 0; i < ui->tableWidget->rowCount(); ++i) {
-        for(int j = 0; j < ui->tableWidget->columnCount(); ++j)
-        {
 
-        }
         QTableWidgetItem *w = ui->tableWidget->item(i, 0);
+        QTableWidgetItem *w2 = ui->tableWidget->item(i, 1);
+        QTableWidgetItem *w3 = ui->tableWidget->item(i, 2);
+        QTableWidgetItem *w4 = ui->tableWidget->item(i, 3);
 
-        if (w && w->text().contains(query, Qt::CaseInsensitive)) {
+        if ((w && w->text().contains(query, Qt::CaseInsensitive)) || (w2 && w2->text().contains(query, Qt::CaseInsensitive)) || (w3 && w3->text().contains(query, Qt::CaseInsensitive)) || (w4 && w4->text().contains(query, Qt::CaseInsensitive))) {
             // Select the entire row when matching word is found
             for (int c = 0; c < 4; ++c) {  // Select all columns in matched row
                 QTableWidgetItem *rowItem = ui->tableWidget->item(i, c);
@@ -276,10 +307,10 @@ void MainWindow::on_TableSelectionChanged()
         return it ? it->text() : QString();
     };
 
-    ui->definitionEng->setText(textAt(0));
-    ui->definitionPinyin->setText(textAt(1));
-    ui->definitionSimp->setText(textAt(2));
-    ui->definitionTrad->setText(textAt(3));
+    ui->definitionEng->setText(textAt(3));
+    ui->definitionPinyin->setText(textAt(2));
+    ui->definitionSimp->setText(textAt(1));
+    ui->definitionTrad->setText(textAt(0));
 }
 
 void MainWindow::on_actionAbout_triggered()
