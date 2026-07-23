@@ -29,6 +29,19 @@
     <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
    </property>
   </widget>
+  <widget class="QCheckBox" name="diacriticBox">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>50</y>
+     <width>241</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Convert to pinyin with diacritics</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>

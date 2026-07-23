@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QString>
+#include <QChar>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QtWidgets/QApplication>
@@ -16,7 +17,8 @@
 #include <QWidget>
 #include <QAbstractScrollArea>
 #include <QMessageBox>
-//#include <QApplication>
+
+#include <QDebug>
 
 //for the loading window
 #include <QFutureWatcher>
@@ -45,12 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableWidget->setColumnCount(4);  //there are 4 columns needed
 
-    // Optional: Set horizontal headers
-    /*QStringList headers;
-    headers << "Traditional" << "Simplified" << "Pinyin" << "Definition";
-    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tableWidget->verticalHeader()->setVisible(false);  // Hide row numbers*/
-
+    //setting headers
     QStringList headers = {"Traditional", "Simplified", "Pinyin", "Definition"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -308,6 +305,15 @@ void MainWindow::on_TableSelectionChanged()
     };
 
     ui->definitionEng->setText(textAt(3));
+    if (diacriticsEnabled == false)
+    {
+        ui->definitionPinyin->setText(textAt(2));
+    }
+    else
+    {
+        QString diacriticsPinyin = numberedPinyinToDiacritics(textAt(2));
+        ui->definitionPinyin->setText(diacriticsPinyin);
+    }
     ui->definitionPinyin->setText(textAt(2));
     ui->definitionSimp->setText(textAt(1));
     ui->definitionTrad->setText(textAt(0));
@@ -321,6 +327,122 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionPreferences_triggered()
 {
-    PreferencesDialog dlg(this);
+    PreferencesDialog dlg(this, diacriticsEnabled);
+    //connecting the settings in the preferences window here, before the .exec() function
+    connect(&dlg, &PreferencesDialog::diacriticPinyinEnabledChanged,
+            this, &MainWindow::on_diacriticsFeatureChanged);
     dlg.exec(); // modal
+}
+
+void MainWindow::on_diacriticsFeatureChanged(bool enabled)
+{
+    //setting the global variable diacriticsEnabled to the state of the checkbox
+    diacriticsEnabled = enabled;
+
+}
+
+//helper functions
+//AI-generated
+
+QChar MainWindow::toneMarkVowel(QChar base, int tone)
+{
+    if (tone == 0 || tone == 5) return base;
+
+    // Tone: 1=ā/á/ǎ/à, 2=..., 3=..., 4=...
+    // Index 0..3 correspond to tone 1..4
+    auto map = [&](QChar lower) -> const QChar* {
+        static const QChar a[4] = { u'ā', u'á', u'ǎ', u'à' };
+        static const QChar e[4] = { u'ē', u'é', u'ě', u'è' };
+        static const QChar i[4] = { u'ī', u'í', u'ǐ', u'ì' };
+        static const QChar o[4] = { u'ō', u'ó', u'ǒ', u'ò' };
+        static const QChar u_[4] = { u'ū', u'ú', u'ǔ', u'ù' };
+        static const QChar v[4] = { u'ǖ', u'ǘ', u'ǚ', u'ǜ' };
+
+        // Also support uppercase by returning uppercase sets
+        static const QChar A[4] = { u'Ā', u'Á', u'Ǎ', u'À' };
+        static const QChar E[4] = { u'Ē', u'É', u'Ě', u'È' };
+        static const QChar I[4] = { u'Ī', u'Í', u'Ǐ', u'Ì' };
+        static const QChar O[4] = { u'Ō', u'Ó', u'Ǒ', u'Ò' };
+        static const QChar U[4] = { u'Ū', u'Ú', u'Ǔ', u'Ù' };
+        static const QChar V[4] = { u'Ǖ', u'Ǘ', u'Ǚ', u'Ǜ' };
+
+        // lower might already be uppercase depending on how you call it,
+        // so handle exact cases
+        if (lower == u'a') return a;
+        if (lower == u'e') return e;
+        if (lower == u'i') return i;
+        if (lower == u'o') return o;
+        if (lower == u'u') return u_;
+        if (lower == u'ü') return v;
+
+        if (lower == u'A') return A;
+        if (lower == u'E') return E;
+        if (lower == u'I') return I;
+        if (lower == u'O') return O;
+        if (lower == u'U') return U;
+        if (lower == u'Ü') return V;
+
+        return nullptr;
+    };
+
+    const QChar* arr = map(base);
+    if (!arr) return base;
+
+    // tone is 1..4
+    int idx = tone - 1;
+    return arr[idx];
+}
+
+//AI generated
+// Converts one syllable like "hai2" -> "hái"
+QString MainWindow::numberedPinyinToDiacritics(QString s)
+{
+    s = s.trimmed();
+    if (s.isEmpty()) return s;
+
+    // If you sometimes use u: instead of ü, convert first
+    s.replace("u:", "ü");
+
+    // Tone digit at end
+    QChar last = s.back();
+    if (!last.isDigit()) return s;
+
+    int tone = last.digitValue(); // 0..5 expected
+    if (tone < 0 || tone > 5) return s;
+
+    s.chop(1); // remove tone digit
+
+    // Choose which vowel to mark:
+    // 1) a, 2) e, 3) if "ou" then mark o, 4) otherwise mark i/u/ü
+    int markPos = -1;
+
+    auto find = [&](QChar ch) -> int {
+        return s.indexOf(ch);
+    };
+
+    markPos = find(QChar(u'a'));
+    if (markPos == -1) markPos = find(QChar(u'A'));
+
+    if (markPos == -1) markPos = find(QChar(u'e'));
+    if (markPos == -1) markPos = find(QChar(u'E'));
+
+    if (markPos == -1) {
+        int ouPos = s.indexOf("ou");
+        if (ouPos != -1) markPos = ouPos;
+    }
+
+    if (markPos == -1) markPos = find(QChar(u'i'));
+    if (markPos == -1) markPos = find(QChar(u'I'));
+
+    if (markPos == -1) markPos = find(QChar(u'u'));
+    if (markPos == -1) markPos = find(QChar(u'U'));
+
+    if (markPos == -1) markPos = find(QChar(u'ü'));
+    if (markPos == -1) markPos = find(QChar(u'Ü'));
+
+    if (markPos == -1) return s; // no vowel found
+
+    QChar base = s[markPos];
+    s[markPos] = MainWindow::toneMarkVowel(base, tone);
+    return s;
 }

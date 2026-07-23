@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QString>
 #include <QListWidget>
+#include <QChar>
 
 #include <QTableWidget>
 
@@ -42,10 +43,18 @@ private slots:
 
     void on_actionPreferences_triggered();
 
+    void on_diacriticsFeatureChanged(bool enabled);
+
+
+    QChar toneMarkVowel(QChar base, int tone);
+    QString numberedPinyinToDiacritics(QString s);
+
 private:
     Ui::MainWindow *ui;
 
     QListWidgetItem *currentItem;
     QString dictFilePath = "";
+
+    bool diacriticsEnabled = false;
 };
 #endif // MAINWINDOW_H
