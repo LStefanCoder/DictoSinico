@@ -97,6 +97,7 @@ static bool parseCedictLine(const QString &line,
 
 void MainWindow::loadDictionaryFile(const QString &filePath)
 {
+    qDebug() << filePath;
     //creating the logic for the loading window to show during the loading of the dictionary
     auto* loading = new LoadingDialog(this);
 
@@ -308,7 +309,6 @@ void MainWindow::on_TableSelectionChanged()
     ui->definitionEng->setText(textAt(3));
     if (diacriticsEnabled == false)
     {
-        qDebug() << textAt(2);
         ui->definitionPinyin->setText(textAt(2));
     }
     else
@@ -325,7 +325,6 @@ void MainWindow::on_TableSelectionChanged()
 
         //joining the QStringList to a QString with no separator
         QString diacriticsPinyin = diacriticPinyinParts.join(' ');
-        qDebug() << diacriticsPinyin;
         ui->definitionPinyin->setText(diacriticsPinyin);
     }
     ui->definitionSimp->setText(textAt(1));
@@ -420,7 +419,6 @@ QString MainWindow::numberedPinyinToDiacritics(QString s)
     if (!last.isDigit()) return s;
 
     int tone = last.digitValue(); // 0..5 expected
-    qDebug() << tone;
     if (tone < 0 || tone > 5) return s;
 
     s.chop(1); // remove tone digit
