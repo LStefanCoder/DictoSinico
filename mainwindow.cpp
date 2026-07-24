@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QString>
+#include <QStringList>
 #include <QChar>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -307,14 +308,26 @@ void MainWindow::on_TableSelectionChanged()
     ui->definitionEng->setText(textAt(3));
     if (diacriticsEnabled == false)
     {
+        qDebug() << textAt(2);
         ui->definitionPinyin->setText(textAt(2));
     }
     else
     {
-        QString diacriticsPinyin = numberedPinyinToDiacritics(textAt(2));
+        //getting all the syllables in the string, converting them to the diacritics format and concatenating them back to a string
+        QString pinyinString = textAt(2);
+        QStringList pinyinParts = textAt(2).split(QChar(' ')); // Default splits on space
+        QStringList diacriticPinyinParts = {};
+
+        //iterating over the split strings
+        for (const QString& syllable : pinyinParts) {
+            diacriticPinyinParts.append(numberedPinyinToDiacritics(syllable));
+        }
+
+        //joining the QStringList to a QString with no separator
+        QString diacriticsPinyin = diacriticPinyinParts.join(' ');
+        qDebug() << diacriticsPinyin;
         ui->definitionPinyin->setText(diacriticsPinyin);
     }
-    ui->definitionPinyin->setText(textAt(2));
     ui->definitionSimp->setText(textAt(1));
     ui->definitionTrad->setText(textAt(0));
 }
@@ -338,7 +351,6 @@ void MainWindow::on_diacriticsFeatureChanged(bool enabled)
 {
     //setting the global variable diacriticsEnabled to the state of the checkbox
     diacriticsEnabled = enabled;
-
 }
 
 //helper functions
@@ -408,6 +420,7 @@ QString MainWindow::numberedPinyinToDiacritics(QString s)
     if (!last.isDigit()) return s;
 
     int tone = last.digitValue(); // 0..5 expected
+    qDebug() << tone;
     if (tone < 0 || tone > 5) return s;
 
     s.chop(1); // remove tone digit
