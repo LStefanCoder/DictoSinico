@@ -42,6 +42,32 @@
     <string>Convert to pinyin with diacritics</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="colorPinyinBox">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>90</y>
+     <width>191</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Show colored pronunciation</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="HSKLevelBox">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>130</y>
+     <width>171</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Show HSK level</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>

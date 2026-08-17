@@ -309,13 +309,47 @@ void MainWindow::on_TableSelectionChanged()
     ui->definitionEng->setText(textAt(3));
     if (diacriticsEnabled == false)
     {
-        ui->definitionPinyin->setText(textAt(2));
+        if (colorPinyinEnabled == false)
+        {
+            ui->definitionPinyin->setText(textAt(2));
+        }
+        else
+        {
+            QString pinyinString = textAt(2);
+            QStringList pinyinParts = textAt(2).split(QChar(' '));
+            QStringList coloredPinyinParts = {};
+            for (int i=0; i < pinyinParts.length(); i++)
+            {
+                //checking each syllable for a valid pinyin string
+                if (isValidPinyin(pinyinParts[i]) == true)
+                {
+                    //getting the last character of the syllable and converting it to an integer
+                    QChar intAtTheEnd = pinyinParts[i].back();
+                    qDebug() << intAtTheEnd;
+                    int lastDigit = intAtTheEnd.digitValue();
+
+                    coloredPinyinParts.append(convertToColoredSpan(pinyinParts[i], lastDigit));
+                }
+
+                else
+                {
+                    qDebug() << 'false';
+                    coloredPinyinParts.append(pinyinParts[i]);
+                }
+
+            }
+
+            //unifying the parts of the stringlist into one string
+            QString coloredPinyinTogether = coloredPinyinParts.join(", ");
+            ui->definitionPinyin->setText(coloredPinyinTogether);
+        }
+
     }
     else
     {
         //getting all the syllables in the string, converting them to the diacritics format and concatenating them back to a string
         QString pinyinString = textAt(2);
-        QStringList pinyinParts = textAt(2).split(QChar(' ')); // Default splits on space
+        QStringList pinyinParts = textAt(2).split(QChar(' ')); //splitting on the space character to get the individual syllables
         QStringList diacriticPinyinParts = {};
 
         //iterating over the split strings
@@ -339,10 +373,14 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionPreferences_triggered()
 {
-    PreferencesDialog dlg(this, diacriticsEnabled);
+    PreferencesDialog dlg(this, diacriticsEnabled, colorPinyinEnabled, HSKLevelEnabled);
     //connecting the settings in the preferences window here, before the .exec() function
     connect(&dlg, &PreferencesDialog::diacriticPinyinEnabledChanged,
             this, &MainWindow::on_diacriticsFeatureChanged);
+    connect(&dlg, &PreferencesDialog::colorPinyinEnabledChanged,
+            this, &MainWindow::on_pinyinColorChanged);
+    connect(&dlg, &PreferencesDialog::HSKEnabledChanged,
+            this, &MainWindow::on_HSKChanged);
     dlg.exec(); // modal
 }
 
@@ -350,6 +388,46 @@ void MainWindow::on_diacriticsFeatureChanged(bool enabled)
 {
     //setting the global variable diacriticsEnabled to the state of the checkbox
     diacriticsEnabled = enabled;
+}
+
+void MainWindow::on_pinyinColorChanged(bool enabled)
+{
+    colorPinyinEnabled = enabled;
+}
+
+void MainWindow::on_HSKChanged(bool enabled)
+{
+    HSKLevelEnabled = enabled;
+}
+
+//this function gives an appropriate HTML string for a colored pinyin representation
+QString MainWindow::convertToColoredSpan(QString s, int n)
+{
+    //going through all four tones, and returning the input string if the tone is 5
+    if (n == 1)
+    {
+        return "<span style='color:#ff0000;'>" + s + "</span>";
+    }
+
+    else if (n == 2)
+    {
+        return "<span style='color:#ffa500;'>" + s + "</span>";
+    }
+
+    else if (n == 3)
+    {
+        return "<span style='color:#008000;'>" + s + "</span>";
+    }
+
+    else if (n == 4)
+    {
+        return "<span style='color:#0000ff;'>" + s + "</span>";
+    }
+
+    else
+    {
+        return s;
+    }
 }
 
 //helper functions
@@ -456,4 +534,106 @@ QString MainWindow::numberedPinyinToDiacritics(QString s)
     QChar base = s[markPos];
     s[markPos] = MainWindow::toneMarkVowel(base, tone);
     return s;
+}
+
+bool MainWindow::isValidPinyin(QString input)
+{
+    // --- normalize: lowercase + keyboard forms u: / v -> ü ---
+    input = input.toLower();
+    QString s;
+    s.reserve(input.size());
+
+    for (int i = 0; i < input.size(); ++i) {
+        const QChar ch = input[i];
+        if (ch == 'u' && i + 1 < input.size() && input[i + 1] == ':') {
+            s.push_back(QChar(0x00FC)); // ü
+            ++i; // skip ':'
+        } else if (ch == 'v') {
+            s.push_back(QChar(0x00FC)); // ü
+        } else {
+            s.push_back(ch);
+        }
+    }
+
+    // --- strip optional trailing tone digit (1-5), default tone=5 (neutral/no digit) ---
+    QString core = s;
+    int tone = 5;
+
+    if (core.isEmpty())
+        return false;
+
+    const QChar last = core.back();
+    if (last.isDigit()) {
+        int d = last.digitValue();
+        if (d < 1 || d > 5)
+            return false;
+        tone = d;
+        core.chop(1);
+    }
+
+    if (core.isEmpty())
+        return false;
+
+    // --- validate characters: only a-z and ü ---
+    auto isUmlautU = [](QChar c) -> bool { return c == QChar(0x00FC); };
+
+    for (QChar ch : core) {
+        const ushort u = ch.unicode();
+        bool ok = (u >= 'a' && u <= 'z') || isUmlautU(ch);
+        if (!ok)
+            return false;
+        if (ch.isDigit())
+            return false;
+    }
+
+    // --- initials (single letters) ---
+    static const std::vector<QString> initials = {
+        "b","p","m","f","d","t","n","l","g","k","h","j","q","x","r","z","c","s"
+    };
+
+    // --- finals (pragmatic set) ---
+    static const std::unordered_set<std::string> finals = {
+        // a-row
+        "a","ai","ao","an","ang","ia","uan",
+        // o-row
+        "o","ou","ong",
+        // e-row
+        "e","ei","en","eng","er",
+        // i-row
+        "i","ia","ie","in","ing","iong",
+        // u-row
+        "u","ua","uo","uai","ui","uan","uang","ueng","un","uong",
+        // ü-row
+        "ü","üe","üan","ün"
+    };
+
+    // --- split into initial (if any) + final ---
+    QChar first = core[0];
+    bool hasInitial = false;
+    for (const QString &iniCand : initials) {
+        if (iniCand.size() == 1 && iniCand[0] == first) {
+            hasInitial = true;
+            break;
+        }
+    }
+
+    QString fin = hasInitial ? core.mid(1) : core;
+    if (fin.isEmpty())
+        return false;
+
+    // --- final must be in our finals set ---
+    // Convert fin (UTF-16) to UTF-8 for lookup strings (expects ü as UTF-8)
+    std::string finStd = fin.toUtf8().constData();
+    if (finals.find(finStd) == finals.end())
+        return false;
+
+    // --- must contain at least one vowel-like character ---
+    bool hasVowel = false;
+    for (QChar c : fin) {
+        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || isUmlautU(c)) {
+            hasVowel = true;
+            break;
+        }
+    }
+    return hasVowel;
 }

@@ -44,10 +44,14 @@ private slots:
     void on_actionPreferences_triggered();
 
     void on_diacriticsFeatureChanged(bool enabled);
+    void on_pinyinColorChanged(bool enabled);
+    void on_HSKChanged(bool enabled);
 
 
     QChar toneMarkVowel(QChar base, int tone);
     QString numberedPinyinToDiacritics(QString s);
+    QString convertToColoredSpan(QString s, int n);
+    bool isValidPinyin(QString s);
 
 private:
     Ui::MainWindow *ui;
@@ -56,5 +60,7 @@ private:
     QString dictFilePath = "";
 
     bool diacriticsEnabled = false;
+    bool colorPinyinEnabled = false;
+    bool HSKLevelEnabled = false;
 };
 #endif // MAINWINDOW_H
