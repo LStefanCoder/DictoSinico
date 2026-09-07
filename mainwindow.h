@@ -23,7 +23,7 @@ public:
     ~MainWindow() override;
 
     //method to load the dictionary
-    void loadDictionaryFile(const QString &filePath);
+    void loadDictionaryFile(const QString &filePath, const QString &filePath2);
 
 signals:
     void dictionaryLoaded(int entryCount);
@@ -35,7 +35,7 @@ private slots:
 
     void on_clearButton_clicked();
 
-    void on_loadFileButton_clicked();
+    //void on_loadFileButton_clicked();
 
     void on_TableSelectionChanged();
 
@@ -52,12 +52,18 @@ private slots:
     QString numberedPinyinToDiacritics(QString s);
     QString convertToColoredSpan(QString s, int n);
     bool isValidPinyin(QString s);
+    QVector<QPair<QString, int>> loadCsv_col1Text_col2Int(const QString& filePath);
+    QString getHSKNumber(QString simp);
+
+    //QVector<QPair<QString, int>> HSKTableRows;
 
 private:
     Ui::MainWindow *ui;
 
     QListWidgetItem *currentItem;
     QString dictFilePath = "";
+
+    QVector<QPair<QString, int>> HSKTableRows;
 
     bool diacriticsEnabled = false;
     bool colorPinyinEnabled = false;

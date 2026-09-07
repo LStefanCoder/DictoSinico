@@ -1,5 +1,6 @@
 <RCC>
-  <qresource prefix="/">
-    <file>cedict_ts.txt</file>
-  </qresource>
+    <qresource prefix="/">
+        <file>cedict_ts.txt</file>
+        <file>hanziDB_twocolumns.csv</file>
+    </qresource>
 </RCC>

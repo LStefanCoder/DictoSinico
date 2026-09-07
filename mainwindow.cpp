@@ -18,8 +18,7 @@
 #include <QWidget>
 #include <QAbstractScrollArea>
 #include <QMessageBox>
-
-#include <QDebug>
+#include <QVector>
 
 //for the loading window
 #include <QFutureWatcher>
@@ -37,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->searchButton, &QPushButton::clicked, this, &MainWindow::on_searchButton_clicked);
-    connect(ui->loadFileButton, &QPushButton::clicked, this, &MainWindow::on_loadFileButton_clicked);
+    //connect(ui->loadFileButton, &QPushButton::clicked, this, &MainWindow::on_loadFileButton_clicked);
     //this is for when a row of the table was selected
     connect(ui->tableWidget, &QTableWidget::itemSelectionChanged,
             this, &MainWindow::on_TableSelectionChanged);
@@ -95,9 +94,10 @@ static bool parseCedictLine(const QString &line,
     return true;
 }
 
-void MainWindow::loadDictionaryFile(const QString &filePath)
+void MainWindow::loadDictionaryFile(const QString &filePath, const QString &filePath2)
 {
     qDebug() << filePath;
+    qDebug() << filePath2;
     //creating the logic for the loading window to show during the loading of the dictionary
     auto* loading = new LoadingDialog(this);
 
@@ -105,11 +105,11 @@ void MainWindow::loadDictionaryFile(const QString &filePath)
     loading->show();
 
     // Keep the dialog alive until work finishes
-    auto* watcher = new QFutureWatcher<QByteArray>(this);
+    auto* watcher = new QFutureWatcher<std::pair<QByteArray, QByteArray>>(this);
 
     connect(watcher, &QFutureWatcher<QByteArray>::finished, this, [=]() {
         // Retrieve results from the future and update your UI
-        QByteArray data = watcher->result();
+        auto [data1, data2] = watcher->result();
         // ... parse data / update editor ...
 
         loading->close();
@@ -119,11 +119,23 @@ void MainWindow::loadDictionaryFile(const QString &filePath)
 
     QFile file(filePath);
 
-    watcher->setFuture(QtConcurrent::run([filePath]() -> QByteArray {
+    watcher->setFuture(QtConcurrent::run([filePath, filePath2]() -> QPair<QByteArray, QByteArray> {
+        auto readAll = [](const QString& path) -> QByteArray {
+            QFile f(path);
+            if (!f.open(QIODevice::ReadOnly)) return {};
+            return f.readAll();
+        };
+
+        return { readAll(filePath), readAll(filePath2) };
+    }));
+
+    /*watcher->setFuture(QtConcurrent::run([filePath]() -> QByteArray {
         QFile f(filePath);
         if (!f.open(QIODevice::ReadOnly)) return {};
         return f.readAll();
-    }));
+    }));*/
+
+
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Cannot open dictionary file!");
@@ -179,6 +191,8 @@ void MainWindow::loadDictionaryFile(const QString &filePath)
     ui->tableWidget->setHorizontalHeaderLabels(headers);
 
     file.close();
+
+    HSKTableRows = MainWindow::loadCsv_col1Text_col2Int(filePath2);
 
     emit dictionaryLoaded(ui->tableWidget->rowCount());
 
@@ -262,21 +276,6 @@ void MainWindow::on_clearButton_clicked()
 }
 
 
-void MainWindow::on_loadFileButton_clicked()
-{
-    // Open file dialog to select CC-CEDICT file
-    QString filePath = QFileDialog::getOpenFileName(
-        this,
-        "Select CC-CEDICT Dictionary File",
-        "",
-        "Text Files (*.txt)");
-
-    if (!filePath.isEmpty()) {
-        loadDictionaryFile(filePath);
-        dictFilePath = filePath; // Store path for future reference
-    }
-}
-
 void MainWindow::on_TableSelectionChanged()
 {
     //clear the labels if there is nothing is selected
@@ -325,7 +324,7 @@ void MainWindow::on_TableSelectionChanged()
                 {
                     //getting the last character of the syllable and converting it to an integer
                     QChar intAtTheEnd = pinyinParts[i].back();
-                    qDebug() << intAtTheEnd;
+                    //qDebug() << intAtTheEnd;
                     int lastDigit = intAtTheEnd.digitValue();
 
                     coloredPinyinParts.append(convertToColoredSpan(pinyinParts[i], lastDigit));
@@ -333,7 +332,7 @@ void MainWindow::on_TableSelectionChanged()
 
                 else
                 {
-                    qDebug() << 'false';
+                    //qDebug() << 'false';
                     coloredPinyinParts.append(pinyinParts[i]);
                 }
 
@@ -361,6 +360,22 @@ void MainWindow::on_TableSelectionChanged()
         QString diacriticsPinyin = diacriticPinyinParts.join(' ');
         ui->definitionPinyin->setText(diacriticsPinyin);
     }
+
+    //the HSK level text
+
+    if (HSKLevelEnabled == true)
+    {
+        QString HSKTest;
+        HSKTest = MainWindow::getHSKNumber(textAt(1));
+
+        ui->hskValue->setText(HSKTest);
+    }
+    else
+    {
+        //empty label
+        ui->hskValue->setText(" ");
+    }
+
     ui->definitionSimp->setText(textAt(1));
     ui->definitionTrad->setText(textAt(0));
 }
@@ -636,4 +651,71 @@ bool MainWindow::isValidPinyin(QString input)
         }
     }
     return hasVowel;
+}
+
+QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString& filePath)
+{
+    qDebug() << filePath;
+    QVector<QPair<QString, int>> rows;
+
+    QFile file(filePath);
+    //if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        //return rows;
+
+    QTextStream in(&file);
+
+    while (!in.atEnd()) {
+        const QString line = in.readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        // Simple (unquoted) CSV split
+        const QStringList parts = line.split(',', Qt::KeepEmptyParts);
+        if (parts.size() < 2) continue;
+
+        const QString col1 = parts.at(0).trimmed();
+
+        bool ok = false;
+        const int col2 = parts.at(1).trimmed().toInt(&ok);
+        if (!ok) continue; // skip rows where col2 isn't an integer
+
+        rows.push_back({col1, col2});
+    }
+
+    //there should also be a global variable
+    return rows;
+}
+
+//getting the correct HSK number
+QString MainWindow::getHSKNumber(QString simp)
+{
+    //HSKTableRows was declared as a private variable of MainWindo
+    QVector<QPair<QString, int>> HSKTable = HSKTableRows;
+    int HSKNumber = 0;
+
+    //looping through all the characters of the simplified word, looking for the simplified character in the HSK table
+    for (QChar ch : simp) {
+        for (const auto& [character, number] : HSKTable)
+        {
+            //the vector contains QStrings, not QChars
+
+            if(character == QString(ch))
+            {
+                if(int(number) > HSKNumber)
+                {
+                    HSKNumber = int(number);
+                }
+            }
+        }
+    }
+
+    if (HSKNumber == 0)
+    {
+        return "HSK+";
+    }
+    else
+    {
+        QString returnString = "HSK" + QString::number(HSKNumber);
+        return returnString;
+    }
+
 }

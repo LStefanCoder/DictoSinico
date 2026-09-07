@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>440</x>
-      <y>10</y>
+      <y>20</y>
       <width>75</width>
       <height>24</height>
      </rect>
@@ -30,31 +30,18 @@
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>10</y>
-      <width>113</width>
+      <x>220</x>
+      <y>20</y>
+      <width>191</width>
       <height>22</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="loadFileButton">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>10</y>
-      <width>91</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>LoadDictionary</string>
     </property>
    </widget>
    <widget class="QPushButton" name="clearButton">
     <property name="geometry">
      <rect>
       <x>550</x>
-      <y>10</y>
+      <y>20</y>
       <width>75</width>
       <height>24</height>
      </rect>
@@ -131,7 +118,7 @@
     <property name="geometry">
      <rect>
       <x>410</x>
-      <y>370</y>
+      <y>380</y>
       <width>351</width>
       <height>61</height>
      </rect>
@@ -143,6 +130,24 @@
     </property>
     <property name="text">
      <string>Trad</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="hskValue">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>510</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>HSK</string>
     </property>
    </widget>
   </widget>

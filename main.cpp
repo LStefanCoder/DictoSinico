@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     w.show();
 
     //loading the dictionary at the start of the program
-    w.loadDictionaryFile(":/cedict_ts.txt");
+    w.loadDictionaryFile(":/cedict_ts.txt", ":/hanziDB_twocolumns.csv");
     //w.loadDictionaryFile("C:/Users/User/Documents/Projects/2026/CeDict/cedict_ts.txt");
 
     return QCoreApplication::exec();

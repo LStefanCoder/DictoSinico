@@ -29,6 +29,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     cedict_ts.txt
+    hanziDB_twocolumns.csv
 
 RESOURCES += \
     resources.qrc
