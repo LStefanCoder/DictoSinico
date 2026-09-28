@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: white;
+    }
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #hanziContainer {
+        width: 90vmin;
+        height: 90vmin;
+    }
+
+    #hanziContainer svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    /*
+       Make Me a Hanzi SVGs normally contain one path per stroke.
+       The animation reveals those paths one after another.
+    */
+    #hanziContainer path {
+        fill: #222;
+        opacity: 0;
+    }
+
+    #hanziContainer path.visible {
+        opacity: 1;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="hanziContainer"></div>
+
+<script>
+let animation;
+let currentPaths = [];
+let isPaused = false;
+
+async function loadCharacter(filename) {
+    pauseAnimation();
+
+    const response = await fetch("../svgs/" + filename);
+
+    if (!response.ok) {
+        throw new Error("Could not load SVG: " + filename);
+    }
+
+    const svgText = await response.text();
+
+    document.getElementById("hanziContainer").innerHTML = svgText;
+
+    const svg = document.querySelector("#hanziContainer svg");
+
+    if (!svg) {
+        throw new Error("The file does not contain an SVG element.");
+    }
+
+    currentPaths = Array.from(
+        document.querySelectorAll("#hanziContainer path")
+    );
+
+    currentPaths.forEach(function(path) {
+        path.classList.remove("visible");
+        path.style.opacity = "0";
+    });
+
+    resetAnimation();
+}
+
+function startAnimation() {
+    if (!currentPaths.length) {
+        return;
+    }
+
+    isPaused = false;
+
+    // Cancel an existing animation before starting again.
+    if (animation) {
+        animation.cancel();
+    }
+
+    /*
+       Each Make Me a Hanzi SVG path represents a stroke.
+       The paths appear one after another.
+    */
+    animation = document
+        .getElementById("hanziContainer")
+        .animate(
+            [
+                { opacity: 1 },
+                { opacity: 1 }
+            ],
+            {
+                duration: currentPaths.length * 500,
+                easing: "linear",
+                fill: "forwards"
+            }
+        );
+
+    /*
+       Animate individual paths with Web Animations API.
+       This is easier to pause/resume than manually using timers.
+    */
+    const animations = [];
+
+    currentPaths.forEach(function(path, index) {
+        const pathAnimation = path.animate(
+            [
+                { opacity: 0 },
+                { opacity: 1 }
+            ],
+            {
+                duration: 100,
+                delay: index * 500,
+                fill: "forwards",
+                easing: "linear"
+            }
+        );
+
+        animations.push(pathAnimation);
+    });
+
+    animation = {
+        pause: function() {
+            animations.forEach(a => a.pause());
+        },
+
+        play: function() {
+            animations.forEach(a => a.play());
+        },
+
+        cancel: function() {
+            animations.forEach(a => a.cancel());
+        }
+    };
+
+    animation.play();
+}
+
+function pauseAnimation() {
+    if (animation) {
+        animation.pause();
+        isPaused = true;
+    }
+}
+
+function resumeAnimation() {
+    if (animation) {
+        animation.play();
+        isPaused = false;
+    }
+}
+
+function resetAnimation() {
+    if (animation) {
+        animation.cancel();
+        animation = null;
+    }
+
+    currentPaths.forEach(function(path) {
+        path.style.opacity = "0";
+    });
+
+    isPaused = false;
+}
+</script>
+
+</body>
+</html>

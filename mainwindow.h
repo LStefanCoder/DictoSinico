@@ -14,6 +14,8 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class svgWidget; //the widget for drawing the makemeahanzi animated svg files
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -29,13 +31,19 @@ signals:
     void dictionaryLoaded(int entryCount);
 
 private slots:
-    // Connected to UI Designer buttons (defined below)
+    // Connected to the buttons of the
 
     void on_searchButton_clicked();
-
     void on_clearButton_clicked();
 
-    //void on_loadFileButton_clicked();
+    //the two buttons of the character svg animation
+    void on_animationStartButton_clicked();
+    void on_animationStopButton_clicked();
+
+    //the two radio buttons
+    void on_simplifiedRadio_clicked();
+    void on_traditionalRadio_clicked();
+
 
     void on_TableSelectionChanged();
 
@@ -55,10 +63,10 @@ private slots:
     QVector<QPair<QString, int>> loadCsv_col1Text_col2Int(const QString& filePath);
     QString getHSKNumber(QString simp);
 
-    //QVector<QPair<QString, int>> HSKTableRows;
 
 private:
     Ui::MainWindow *ui;
+    svgWidget *hanziWidget;
 
     QListWidgetItem *currentItem;
     QString dictFilePath = "";
@@ -68,5 +76,8 @@ private:
     bool diacriticsEnabled = false;
     bool colorPinyinEnabled = false;
     bool HSKLevelEnabled = false;
+    //the two variables for the two radio buttons controlling whether the simplified or the traditional SVG files are displayed
+    bool simplifiedDisplayed = true;
+    bool traditionalDisplayed = false;
 };
 #endif // MAINWINDOW_H

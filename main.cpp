@@ -18,10 +18,11 @@ int main(int argc, char *argv[])
     QFile file("C:/Users/User/Documents/Projects/2026/CeDict/themes/Geoo.qss");
     file.open(QFile::ReadOnly);
 
-    QString styleSheet { QLatin1String(file.readAll()) };
+    //commented stylesheet out
+    //QString styleSheet { QLatin1String(file.readAll()) };
 
     //setup stylesheet
-    a.setStyleSheet(styleSheet);
+    //a.setStyleSheet(styleSheet);
 
     MainWindow w;
     w.show();

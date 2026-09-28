@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "preferencesdialog.h"
 #include "loadingdialog.h"
+#include "svgwidget.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -20,11 +21,15 @@
 #include <QMessageBox>
 #include <QVector>
 
+#include <QDir>
+#include <QFileInfo>
+#include <QVBoxLayout>
+
 //for the loading window
 #include <QFutureWatcher>
 #include <QtConcurrent>
 
-//themes to be downloaded here: https://qt-material.readthedocs.io/en/latest/
+//themes can be downloaded here: https://qt-material.readthedocs.io/en/latest/
 //https://github.com/hubenchang0515/QtTheme
 //https://qss-stock.devsecstudio.com/documentation.php
 
@@ -36,7 +41,14 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->searchButton, &QPushButton::clicked, this, &MainWindow::on_searchButton_clicked);
-    //connect(ui->loadFileButton, &QPushButton::clicked, this, &MainWindow::on_loadFileButton_clicked);
+    //connecting the svg view buttons
+    connect(ui->animationStartButton, &QPushButton::clicked, this, &MainWindow::on_animationStartButton_clicked);
+    connect(ui->animationStopButton, &QPushButton::clicked, this, &MainWindow::on_animationStopButton_clicked);
+    //the two radio buttons
+    connect(ui->simplifiedRadioButton, &QRadioButton::toggled, this, &MainWindow::on_simplifiedRadio_clicked);
+    connect(ui->traditionalRadioButton, &QRadioButton::toggled, this, &MainWindow::on_traditionalRadio_clicked);
+
+
     //this is for when a row of the table was selected
     connect(ui->tableWidget, &QTableWidget::itemSelectionChanged,
             this, &MainWindow::on_TableSelectionChanged);
@@ -52,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setHorizontalHeaderLabels(headers);
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableWidget->verticalHeader()->setVisible(false);  // Hide row numbers
+
 }
 
 MainWindow::~MainWindow()
@@ -128,12 +141,6 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
 
         return { readAll(filePath), readAll(filePath2) };
     }));
-
-    /*watcher->setFuture(QtConcurrent::run([filePath]() -> QByteArray {
-        QFile f(filePath);
-        if (!f.open(QIODevice::ReadOnly)) return {};
-        return f.readAll();
-    }));*/
 
 
 
@@ -378,6 +385,17 @@ void MainWindow::on_TableSelectionChanged()
 
     ui->definitionSimp->setText(textAt(1));
     ui->definitionTrad->setText(textAt(0));
+
+    //setting the svg files
+    if (simplifiedDisplayed == true)
+    {
+        ui->characterWidget->setText(textAt(1));
+    }
+    else
+    {
+        ui->characterWidget->setText(textAt(0));
+    }
+
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -718,4 +736,30 @@ QString MainWindow::getHSKNumber(QString simp)
         return returnString;
     }
 
+}
+
+//the logic of the two buttons controlling the animation
+void MainWindow::on_animationStartButton_clicked()
+{
+    ui->characterWidget->setText(QStringLiteral("一二三a"));
+    ui->characterWidget->play();
+}
+
+void MainWindow::on_animationStopButton_clicked()
+{
+    ui->characterWidget->pause();
+}
+
+
+//the code for the two radio buttons controlling whether simplified or traditional character SVG files are displayed
+void MainWindow::on_simplifiedRadio_clicked()
+{
+    simplifiedDisplayed = true;
+    traditionalDisplayed = false;
+}
+
+void MainWindow::on_traditionalRadio_clicked()
+{
+    traditionalDisplayed = true;
+    simplifiedDisplayed = false;
 }
