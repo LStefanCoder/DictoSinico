@@ -79,5 +79,7 @@ private:
     //the two variables for the two radio buttons controlling whether the simplified or the traditional SVG files are displayed
     bool simplifiedDisplayed = true;
     bool traditionalDisplayed = false;
+
+    QString displayedText; //the text which should be shown in the animation widget
 };
 #endif // MAINWINDOW_H

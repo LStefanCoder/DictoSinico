@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->animationStopButton, &QPushButton::clicked, this, &MainWindow::on_animationStopButton_clicked);
     //the two radio buttons
     connect(ui->simplifiedRadioButton, &QRadioButton::toggled, this, &MainWindow::on_simplifiedRadio_clicked);
+    //making sure that there is already an option selected at startup
+    ui->simplifiedRadioButton->setChecked(true);
     connect(ui->traditionalRadioButton, &QRadioButton::toggled, this, &MainWindow::on_traditionalRadio_clicked);
 
 
@@ -389,10 +391,12 @@ void MainWindow::on_TableSelectionChanged()
     //setting the svg files
     if (simplifiedDisplayed == true)
     {
+        displayedText = textAt(1);
         ui->characterWidget->setText(textAt(1));
     }
     else
     {
+        displayedText = textAt(0);
         ui->characterWidget->setText(textAt(0));
     }
 
@@ -741,15 +745,17 @@ QString MainWindow::getHSKNumber(QString simp)
 //the logic of the two buttons controlling the animation
 void MainWindow::on_animationStartButton_clicked()
 {
-    ui->characterWidget->setText(QStringLiteral("一二三a"));
-    ui->characterWidget->play();
+    if(!displayedText.isEmpty())
+    {
+        ui->characterWidget->setText(displayedText);
+        ui->characterWidget->play();
+    }
 }
 
 void MainWindow::on_animationStopButton_clicked()
 {
     ui->characterWidget->pause();
 }
-
 
 //the code for the two radio buttons controlling whether simplified or traditional character SVG files are displayed
 void MainWindow::on_simplifiedRadio_clicked()
