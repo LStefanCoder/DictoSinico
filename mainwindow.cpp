@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tableWidget, &QTableWidget::itemSelectionChanged,
             this, &MainWindow::on_TableSelectionChanged);
 
-    ui->lineEdit->setText("");
+    ui->searchField->setText("");
 
     // Setup Table Widget (Better than QListWidget for structured data)
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -67,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableWidget->verticalHeader()->setVisible(false);  // Hide row numbers
 
+    //searching when pressing enter
+    connect(ui->searchField, &QLineEdit::returnPressed, this, &MainWindow::on_searchButton_clicked);
 }
 
 MainWindow::~MainWindow()
@@ -214,7 +216,7 @@ void MainWindow::on_searchButton_clicked()
     for (int i = 0; i < ui->tableWidget->rowCount(); ++i)
         ui->tableWidget->showRow(i);
 
-    QString query = ui->lineEdit->text().trimmed();
+    QString query = ui->searchField->text().trimmed();
 
     if (query.isEmpty()) {
         QMessageBox::information(this, "Info", "Please enter a search term.");
@@ -276,7 +278,7 @@ void MainWindow::on_clearButton_clicked()
     for (int i = 0; i < ui->tableWidget->rowCount(); ++i)
         ui->tableWidget->showRow(i);
 
-    ui->lineEdit->clear();
+    ui->searchField->clear();
 
     QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
     foreach (QTableWidgetItem *item, selectedItems) {
@@ -754,7 +756,7 @@ void MainWindow::on_animationStartButton_clicked()
 
 void MainWindow::on_animationStopButton_clicked()
 {
-    ui->characterWidget->pause();
+    ui->characterWidget->stop();
 }
 
 //the code for the two radio buttons controlling whether simplified or traditional character SVG files are displayed

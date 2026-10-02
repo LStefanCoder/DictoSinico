@@ -27,7 +27,7 @@
      <string>Search</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="searchField">
     <property name="geometry">
      <rect>
       <x>220</x>

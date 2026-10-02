@@ -20,7 +20,7 @@ public:
     explicit SvgWidget(QWidget *parent = nullptr);
     void setText(const QString &text);
     void play();
-    void pause();
+    void stop();
     void reset();
 
 protected:
@@ -29,6 +29,7 @@ protected:
 
 private slots:
     void showNextGif();
+    void startCurrentGif();
 
 private:
     struct CharacterRenderer

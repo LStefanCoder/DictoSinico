@@ -61,7 +61,7 @@ void SvgWidget::setText(const QString &text)
         if (!QFile::exists(svgPath) && !QFile::exists(gifPath))
             continue;
 
-        auto *svg = QFile::exists(svgPath)
+        /*auto *svg = QFile::exists(svgPath)
                         ? new QSvgRenderer(svgPath, this)
                         : nullptr;
 
@@ -91,6 +91,29 @@ void SvgWidget::setText(const QString &text)
             codePoint,
             movie,
             svg
+        });*/
+
+        auto *movie = new QMovie(gifPath, QByteArray(), this);
+        movie->setCacheMode(QMovie::CacheAll);
+
+        connect(movie,
+                &QMovie::frameChanged,
+                this,
+                [this](int) {
+                    update();
+                });
+
+        auto *svg = new QSvgRenderer(svgPath, this);
+
+        connect(svg,
+                &QSvgRenderer::repaintNeeded,
+                this,
+                QOverload<>::of(&SvgWidget::update));
+
+        m_characters.append({
+            codePoint,
+            movie,
+            svg
         });
 
         ++characterPos;
@@ -104,10 +127,12 @@ void SvgWidget::play()
     if (m_characters.isEmpty())
         return;
 
-    m_playing = true;
-    m_showingGifs = true;
+    m_gifTimer.stop();
 
-    m_currentGif = -1;
+    m_playing = true;
+    //m_showingGifs = true;
+
+    m_currentGif = 0;
 
     for (CharacterRenderer &character : m_characters) {
         if (character.movie) {
@@ -116,12 +141,38 @@ void SvgWidget::play()
         }
 
         if (character.svg) {
-            character.svg->setAnimationEnabled(false);
-            character.svg->setCurrentFrame(0);
+            //character.svg->setAnimationEnabled(false);
+            //character.svg->setCurrentFrame(0);
         }
     }
 
-    showNextGif();
+    startCurrentGif();
+}
+
+void SvgWidget::startCurrentGif()
+{
+    if (!m_playing ||
+        m_currentGif < 0 ||
+        m_currentGif >= m_characters.size()) {
+        return;
+    }
+
+    QMovie *movie = m_characters[m_currentGif].movie;
+
+    if (!movie) {
+        showNextGif();
+        return;
+    }
+
+    movie->stop();
+    movie->jumpToFrame(0);
+    movie->start();
+
+    update();
+
+    // After seven seconds, replace this GIF with its SVG
+    // and start the next GIF.
+    m_gifTimer.start(7000);
 }
 
 void SvgWidget::showNextGif()
@@ -129,60 +180,55 @@ void SvgWidget::showNextGif()
     if (!m_playing)
         return;
 
-    ++m_currentGif;
+    QMovie *oldMovie = nullptr;
 
-    while (m_currentGif < m_characters.size() &&
-           !m_characters[m_currentGif].movie) {
-        ++m_currentGif;
+    if (m_currentGif >= 0 &&
+        m_currentGif < m_characters.size()) {
+        oldMovie = m_characters[m_currentGif].movie;
     }
 
-    // All GIFs have finished. Switch to the SVG display.
+    // GIF n is now finished. Its SVG will be painted.
+    if (oldMovie)
+        oldMovie->stop();
+
+    ++m_currentGif;
+
+    // All GIFs have been replaced by SVGs.
     if (m_currentGif >= m_characters.size()) {
-        m_showingGifs = false;
+        m_playing = false;
+        m_currentGif = m_characters.size();
 
         for (CharacterRenderer &character : m_characters) {
-            if (character.movie)
-                character.movie->stop();
-
-            if (character.svg) {
-                character.svg->setCurrentFrame(0);
+            if (character.svg)
                 character.svg->setAnimationEnabled(true);
-            }
         }
 
         update();
         return;
     }
 
-    // Stop any previously active movie.
-    for (int i = 0; i < m_characters.size(); ++i) {
-        if (i != m_currentGif && m_characters[i].movie)
-            m_characters[i].movie->stop();
-    }
-
-    QMovie *movie = m_characters[m_currentGif].movie;
-
-    movie->jumpToFrame(0);
-    movie->start();
-
-    update();
-
-    // Move to the next GIF after seven seconds.
-    m_gifTimer.start(7000);
+    startCurrentGif();
 }
 
-void SvgWidget::pause()
+void SvgWidget::stop()
 {
     m_playing = false;
     m_gifTimer.stop();
 
     for (CharacterRenderer &character : m_characters) {
         if (character.movie)
-            character.movie->setPaused(true);
+            character.movie->stop();
+            character.movie->jumpToFrame(0);
 
         if (character.svg)
+            character.svg->setCurrentFrame(0);
             character.svg->setAnimationEnabled(false);
     }
+
+    // Every character is now painted as an SVG.
+    m_currentGif = m_characters.size();
+
+    update();
 }
 
 void SvgWidget::reset()
@@ -191,7 +237,6 @@ void SvgWidget::reset()
     m_gifTimer.stop();
 
     m_currentGif = -1;
-    m_showingGifs = false;
 
     for (CharacterRenderer &character : m_characters) {
         if (character.movie) {
@@ -208,9 +253,9 @@ void SvgWidget::reset()
     update();
 }
 
-QRectF SvgWidget::targetRect(int index, const QSizeF &sourceSize) const
+/*QRectF SvgWidget::targetRect(int index, const QSizeF &sourceSize) const
 {
-    if (sourceSize.isEmpty())
+    if (!sourceSize.isValid() || sourceSize.isEmpty())
         return {};
 
     const qreal margin = 0.0;
@@ -265,6 +310,64 @@ QRectF SvgWidget::targetRect(int index, const QSizeF &sourceSize) const
     return QRectF(x, y,
                   renderedSize.width(),
                   renderedSize.height());
+}*/
+
+QRectF SvgWidget::targetRect(int index, const QSizeF &sourceSize) const
+{
+    if (!sourceSize.isValid() || sourceSize.isEmpty())
+        return {};
+
+    const qreal gap = width() / 20.0;
+    const qreal scale = qMin(
+        height() / sourceSize.height(),
+        width() / sourceSize.width()
+        );
+
+    const QSizeF renderedSize =
+        sourceSize * scale * 0.35;
+
+    qreal x = 0.0;
+
+    for (int i = 0; i < index; ++i) {
+        QSizeF previousSize;
+
+        if (i < m_currentGif) {
+            // Previous characters are represented by SVGs.
+            QSvgRenderer *svg = m_characters[i].svg;
+
+            if (svg && svg->isValid()) {
+                previousSize = svg->defaultSize();
+
+                if (!previousSize.isValid() || previousSize.isEmpty())
+                    previousSize = svg->viewBoxF().size();
+            }
+        } else {
+            // This is normally only needed for the active GIF.
+            QMovie *movie = m_characters[i].movie;
+
+            if (movie)
+                previousSize = movie->currentImage().size();
+        }
+
+        if (!previousSize.isEmpty()) {
+            const qreal previousScale = qMin(
+                height() / previousSize.height(),
+                width() / previousSize.width()
+                );
+
+            x += previousSize.width() *
+                     previousScale *
+                     0.35 +
+                 gap;
+        }
+    }
+
+    const qreal y =
+        (height() - renderedSize.height()) / 5.0;
+
+    return QRectF(x, y,
+                  renderedSize.width(),
+                  renderedSize.height());
 }
 
 void SvgWidget::paintEvent(QPaintEvent *event)
@@ -277,45 +380,41 @@ void SvgWidget::paintEvent(QPaintEvent *event)
     if (m_characters.isEmpty())
         return;
 
-    if (m_showingGifs) {
-        // Only the currently selected GIF is painted.
-        if (m_currentGif < 0 ||
-            m_currentGif >= m_characters.size()) {
-            return;
+    for (int i = 0; i < m_characters.size(); ++i) {
+        if (i < m_currentGif) {
+            // This GIF has finished and is replaced by its SVG.
+            QSvgRenderer *svg = m_characters[i].svg;
+
+            if (!svg || !svg->isValid())
+                continue;
+
+            QSizeF svgSize = svg->defaultSize();
+
+            if (!svgSize.isValid() || svgSize.isEmpty())
+                svgSize = svg->viewBoxF().size();
+
+            const QRectF target = targetRect(i, svgSize);
+            svg->render(&painter, target);
+        }
+        else if (i == m_currentGif) {
+            // Paint only the currently active GIF.
+            QMovie *movie = m_characters[i].movie;
+
+            if (!movie)
+                continue;
+
+            const QImage image = movie->currentImage();
+
+            if (image.isNull())
+                continue;
+
+            const QRectF target =
+                targetRect(i, image.size());
+
+            painter.drawImage(target, image);
         }
 
-        QMovie *movie = m_characters[m_currentGif].movie;
-
-        if (!movie || movie->currentImage().isNull())
-            return;
-
-        const QImage image = movie->currentImage();
-
-        const QRectF target =
-            targetRect(m_currentGif, image.size());
-
-        painter.drawImage(target, image);
-        return;
-    }
-
-    // SVG phase: paint all SVGs in their normal positions.
-    for (int i = 0; i < m_characters.size(); ++i) {
-        QSvgRenderer *renderer = m_characters[i].svg;
-
-        if (!renderer || !renderer->isValid())
-            continue;
-
-        QSizeF svgSize = renderer->defaultSize();
-
-        if (!svgSize.isValid() || svgSize.isEmpty())
-            svgSize = renderer->viewBoxF().size();
-
-        if (!svgSize.isValid() || svgSize.isEmpty())
-            continue;
-
-        const QRectF target = targetRect(i, svgSize);
-
-        renderer->render(&painter, target);
+        // i > m_currentGif is intentionally left blank.
     }
 }
 
