@@ -2,5 +2,8 @@
     <qresource prefix="/">
         <file>cedict_ts.txt</file>
         <file>hanziDB_twocolumns.csv</file>
+        <file>fonts/Arimo-Regular.ttf</file>
+        <file>fonts/NotoSansSC-Regular.ttf</file>
+        <file>fonts/NotoSansTC-Regular.ttf</file>
     </qresource>
 </RCC>

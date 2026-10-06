@@ -29,6 +29,9 @@
 #include <QFutureWatcher>
 #include <QtConcurrent>
 
+#include <QFont>
+#include <QFontDatabase>
+
 //themes can be downloaded here: https://qt-material.readthedocs.io/en/latest/
 //https://github.com/hubenchang0515/QtTheme
 //https://qss-stock.devsecstudio.com/documentation.php
@@ -69,6 +72,35 @@ MainWindow::MainWindow(QWidget *parent)
 
     //searching when pressing enter
     connect(ui->searchField, &QLineEdit::returnPressed, this, &MainWindow::on_searchButton_clicked);
+
+    /*//loading the fonts
+    const int addedFontLatin = QFontDatabase::addApplicationFont(":/fonts/Arimo-Regular.ttf");
+    const int addedFontSimplified = QFontDatabase::addApplicationFont(":/fonts/NotoSansSC-Regular.ttf");
+    const int addedFontTraditional = QFontDatabase::addApplicationFont(":/fonts/NotoSansTC-Regular.ttf");
+
+    //even if there is only one font, we still have to get the font family name
+    const QStringList familiesLatin = QFontDatabase::applicationFontFamilies(addedFontLatin);
+    const QStringList familiesSimplified = QFontDatabase::applicationFontFamilies(addedFontSimplified);
+    const QStringList familiesTraditional = QFontDatabase::applicationFontFamilies(addedFontTraditional);
+
+    const QString familyLatin = familiesLatin.first();
+    const QString familySimplified = familiesSimplified.first();
+    const QString familyTraditional = familiesTraditional.first();*/
+
+    //setting font types
+    QFont fontLatin(familyLatin);
+    QFont fontSimplified(familySimplified);
+    QFont fontTraditional(familyTraditional);
+
+    fontLatin.setPointSize(14);
+    fontSimplified.setPointSize(20);
+    fontTraditional.setPointSize(20);
+
+    ui->definitionEng->setFont(fontLatin);
+    ui->definitionPinyin->setFont(fontLatin);
+    ui->definitionSimp->setFont(fontSimplified);
+    ui->definitionTrad->setFont(fontTraditional);
+    ui->hskValue->setFont(fontLatin);
 }
 
 MainWindow::~MainWindow()
@@ -113,8 +145,8 @@ static bool parseCedictLine(const QString &line,
 
 void MainWindow::loadDictionaryFile(const QString &filePath, const QString &filePath2)
 {
-    qDebug() << filePath;
-    qDebug() << filePath2;
+    //qDebug() << filePath;
+    //qDebug() << filePath2;
     //creating the logic for the loading window to show during the loading of the dictionary
     auto* loading = new LoadingDialog(this);
 
@@ -146,7 +178,7 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
         return { readAll(filePath), readAll(filePath2) };
     }));
 
-
+    HSKTableRows = MainWindow::loadCsv_col1Text_col2Int(filePath2);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Cannot open dictionary file!");
@@ -201,9 +233,11 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
     QStringList headers = {"Traditional", "Simplified", "Pinyin", "Definition"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
 
+
     file.close();
 
-    HSKTableRows = MainWindow::loadCsv_col1Text_col2Int(filePath2);
+
+    //qDebug() << HSKTableRows;
 
     emit dictionaryLoaded(ui->tableWidget->rowCount());
 
@@ -241,6 +275,20 @@ void MainWindow::on_searchButton_clicked()
         QTableWidgetItem *w2 = ui->tableWidget->item(i, 1);
         QTableWidgetItem *w3 = ui->tableWidget->item(i, 2);
         QTableWidgetItem *w4 = ui->tableWidget->item(i, 3);
+
+        //setting the fonts of the table
+        /*QFont fontLatin(familyLatin);
+        QFont fontSimplified(familySimplified);
+        QFont fontTraditional(familyTraditional);
+
+        fontLatin.setPointSize(11);
+        fontSimplified.setPointSize(11);
+        fontTraditional.setPointSize(11);
+
+        w->setFont(fontTraditional);
+        w2->setFont(fontSimplified);
+        w3->setFont(fontLatin);
+        w4->setFont(fontLatin);*/
 
         if ((w && w->text().contains(query, Qt::CaseInsensitive)) || (w2 && w2->text().contains(query, Qt::CaseInsensitive)) || (w3 && w3->text().contains(query, Qt::CaseInsensitive)) || (w4 && w4->text().contains(query, Qt::CaseInsensitive))) {
             // Select the entire row when matching word is found
@@ -377,6 +425,7 @@ void MainWindow::on_TableSelectionChanged()
     if (HSKLevelEnabled == true)
     {
         QString HSKTest;
+        //qDebug() << textAt(1);
         HSKTest = MainWindow::getHSKNumber(textAt(1));
 
         ui->hskValue->setText(HSKTest);
@@ -387,6 +436,7 @@ void MainWindow::on_TableSelectionChanged()
         ui->hskValue->setText(" ");
     }
 
+    qDebug() << textAt(1);
     ui->definitionSimp->setText(textAt(1));
     ui->definitionTrad->setText(textAt(0));
 
@@ -577,104 +627,165 @@ QString MainWindow::numberedPinyinToDiacritics(QString s)
 
 bool MainWindow::isValidPinyin(QString input)
 {
-    // --- normalize: lowercase + keyboard forms u: / v -> ü ---
+    // Normalize case and keyboard-style ü forms:
+    // v, u:, and u: -> ü
     input = input.toLower();
-    QString s;
-    s.reserve(input.size());
+
+    QString normalized;
+    normalized.reserve(input.size());
 
     for (int i = 0; i < input.size(); ++i) {
-        const QChar ch = input[i];
-        if (ch == 'u' && i + 1 < input.size() && input[i + 1] == ':') {
-            s.push_back(QChar(0x00FC)); // ü
-            ++i; // skip ':'
-        } else if (ch == 'v') {
-            s.push_back(QChar(0x00FC)); // ü
-        } else {
-            s.push_back(ch);
+        const QChar ch = input.at(i);
+
+        if (ch == QLatin1Char('u') &&
+            i + 1 < input.size() &&
+            input.at(i + 1) == QLatin1Char(':')) {
+            normalized.append(QChar(0x00FC)); // ü
+            ++i;
+        }
+        else if (ch == QLatin1Char('v')) {
+            normalized.append(QChar(0x00FC)); // ü
+        }
+        else {
+            normalized.append(ch);
         }
     }
 
-    // --- strip optional trailing tone digit (1-5), default tone=5 (neutral/no digit) ---
-    QString core = s;
-    int tone = 5;
+    if (normalized.isEmpty())
+        return false;
 
+    QString core = normalized;
+
+    // A tone number is mandatory.
+    // Accept only trailing digits 1–5.
     if (core.isEmpty())
         return false;
 
     const QChar last = core.back();
-    if (last.isDigit()) {
-        int d = last.digitValue();
-        if (d < 1 || d > 5)
-            return false;
-        tone = d;
-        core.chop(1);
+
+    if (last < QLatin1Char('1') ||
+        last > QLatin1Char('5')) {
+        return false;
     }
+
+    // Remove the mandatory tone number.
+    core.chop(1);
 
     if (core.isEmpty())
         return false;
 
-    // --- validate characters: only a-z and ü ---
-    auto isUmlautU = [](QChar c) -> bool { return c == QChar(0x00FC); };
+    // Only allow ASCII letters and ü.
+    const QChar umlautU(0x00FC);
 
-    for (QChar ch : core) {
-        const ushort u = ch.unicode();
-        bool ok = (u >= 'a' && u <= 'z') || isUmlautU(ch);
-        if (!ok)
-            return false;
-        if (ch.isDigit())
+    for (const QChar ch : core) {
+        const bool isAsciiLetter =
+            (ch >= QLatin1Char('a') &&
+             ch <= QLatin1Char('z'));
+
+        if (!isAsciiLetter && ch != umlautU)
             return false;
     }
 
-    // --- initials (single letters) ---
-    static const std::vector<QString> initials = {
-        "b","p","m","f","d","t","n","l","g","k","h","j","q","x","r","z","c","s"
+    // Initials must be checked longest first.
+    static const QStringList initials = {
+        QStringLiteral("zh"),
+        QStringLiteral("ch"),
+        QStringLiteral("sh"),
+
+        QStringLiteral("b"),
+        QStringLiteral("p"),
+        QStringLiteral("m"),
+        QStringLiteral("f"),
+        QStringLiteral("d"),
+        QStringLiteral("t"),
+        QStringLiteral("n"),
+        QStringLiteral("l"),
+        QStringLiteral("g"),
+        QStringLiteral("k"),
+        QStringLiteral("h"),
+        QStringLiteral("j"),
+        QStringLiteral("q"),
+        QStringLiteral("x"),
+        QStringLiteral("r"),
+        QStringLiteral("z"),
+        QStringLiteral("c"),
+        QStringLiteral("s"),
+        QStringLiteral("y"),
+        QStringLiteral("w")
     };
 
-    // --- finals (pragmatic set) ---
-    static const std::unordered_set<std::string> finals = {
-        // a-row
-        "a","ai","ao","an","ang","ia","uan",
-        // o-row
-        "o","ou","ong",
-        // e-row
-        "e","ei","en","eng","er",
-        // i-row
-        "i","ia","ie","in","ing","iong",
-        // u-row
-        "u","ua","uo","uai","ui","uan","uang","ueng","un","uong",
-        // ü-row
-        "ü","üe","üan","ün"
+    // These are spelling finals, including the special "i" used in
+    // zhi, chi, shi, ri, zi, ci, and si.
+    static const QSet<QString> finals = {
+        // a finals
+        QStringLiteral("a"),
+        QStringLiteral("ai"),
+        QStringLiteral("ao"),
+        QStringLiteral("an"),
+        QStringLiteral("ang"),
+
+        // e finals
+        QStringLiteral("e"),
+        QStringLiteral("ei"),
+        QStringLiteral("en"),
+        QStringLiteral("eng"),
+        QStringLiteral("er"),
+
+        // o finals
+        QStringLiteral("o"),
+        QStringLiteral("ou"),
+        QStringLiteral("ong"),
+
+        // i finals
+        QStringLiteral("i"),
+        QStringLiteral("ia"),
+        QStringLiteral("iao"),
+        QStringLiteral("ie"),
+        QStringLiteral("iu"),
+        QStringLiteral("ian"),
+        QStringLiteral("iang"),
+        QStringLiteral("in"),
+        QStringLiteral("ing"),
+        QStringLiteral("iong"),
+
+        // u finals
+        QStringLiteral("u"),
+        QStringLiteral("ua"),
+        QStringLiteral("uo"),
+        QStringLiteral("uai"),
+        QStringLiteral("ui"),
+        QStringLiteral("uan"),
+        QStringLiteral("uang"),
+        QStringLiteral("un"),
+        QStringLiteral("uo"),
+        QStringLiteral("ueng"),
+
+        // ü finals
+        QStringLiteral("ü"),
+        QStringLiteral("üe"),
+        QStringLiteral("üan"),
+        QStringLiteral("ün")
     };
 
-    // --- split into initial (if any) + final ---
-    QChar first = core[0];
-    bool hasInitial = false;
-    for (const QString &iniCand : initials) {
-        if (iniCand.size() == 1 && iniCand[0] == first) {
-            hasInitial = true;
-            break;
+    // Find the longest matching initial.
+    QString finalPart = core;
+    int longestInitialLength = 0;
+
+    for (const QString &initial : initials) {
+        if (core.startsWith(initial) &&
+            initial.size() > longestInitialLength) {
+            longestInitialLength = initial.size();
         }
     }
 
-    QString fin = hasInitial ? core.mid(1) : core;
-    if (fin.isEmpty())
-        return false;
-
-    // --- final must be in our finals set ---
-    // Convert fin (UTF-16) to UTF-8 for lookup strings (expects ü as UTF-8)
-    std::string finStd = fin.toUtf8().constData();
-    if (finals.find(finStd) == finals.end())
-        return false;
-
-    // --- must contain at least one vowel-like character ---
-    bool hasVowel = false;
-    for (QChar c : fin) {
-        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || isUmlautU(c)) {
-            hasVowel = true;
-            break;
-        }
+    if (longestInitialLength > 0) {
+        finalPart = core.mid(longestInitialLength);
     }
-    return hasVowel;
+
+    if (finalPart.isEmpty())
+        return false;
+
+    return finals.contains(finalPart);
 }
 
 QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString& filePath)
@@ -698,6 +809,8 @@ QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString&
 
         const QString col1 = parts.at(0).trimmed();
 
+        qDebug() << col1;
+
         bool ok = false;
         const int col2 = parts.at(1).trimmed().toInt(&ok);
         if (!ok) continue; // skip rows where col2 isn't an integer
@@ -716,10 +829,16 @@ QString MainWindow::getHSKNumber(QString simp)
     QVector<QPair<QString, int>> HSKTable = HSKTableRows;
     int HSKNumber = 0;
 
+    qDebug() << "HSKTable size:" << HSKTable.size();
+    qDebug() << "HSKTable is empty:" << HSKTable.isEmpty();
+
     //looping through all the characters of the simplified word, looking for the simplified character in the HSK table
     for (QChar ch : simp) {
+        //qDebug() << "A";
         for (const auto& [character, number] : HSKTable)
         {
+            qDebug() << character;
+            qDebug() << QString(ch);
             //the vector contains QStrings, not QChars
 
             if(character == QString(ch))

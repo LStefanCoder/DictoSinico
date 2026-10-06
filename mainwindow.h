@@ -5,6 +5,8 @@
 #include <QString>
 #include <QListWidget>
 #include <QChar>
+#include <QFont>
+#include <QFontDatabase>
 
 #include <QTableWidget>
 
@@ -81,5 +83,19 @@ private:
     bool traditionalDisplayed = false;
 
     QString displayedText; //the text which should be shown in the animation widget
+
+    //loading the fonts
+    const int addedFontLatin = QFontDatabase::addApplicationFont(":/fonts/Arimo-Regular.ttf");
+    const int addedFontSimplified = QFontDatabase::addApplicationFont(":/fonts/NotoSansSC-Regular.ttf");
+    const int addedFontTraditional = QFontDatabase::addApplicationFont(":/fonts/NotoSansTC-Regular.ttf");
+
+    //even if there is only one font, we still have to get the font family name
+    const QStringList familiesLatin = QFontDatabase::applicationFontFamilies(addedFontLatin);
+    const QStringList familiesSimplified = QFontDatabase::applicationFontFamilies(addedFontSimplified);
+    const QStringList familiesTraditional = QFontDatabase::applicationFontFamilies(addedFontTraditional);
+
+    const QString familyLatin = familiesLatin.first();
+    const QString familySimplified = familiesSimplified.first();
+    const QString familyTraditional = familiesTraditional.first();
 };
 #endif // MAINWINDOW_H

@@ -6,6 +6,8 @@
 #include <QFileInfo>
 #include <QString>
 #include <QDebug>
+#include <QFont>
+#include <QFontDatabase>
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +25,15 @@ int main(int argc, char *argv[])
 
     //setup stylesheet
     //a.setStyleSheet(styleSheet);
+
+    //loading a basic font for the program
+    const int addedBasicFont = QFontDatabase::addApplicationFont(":/fonts/Arimo-Regular.ttf");
+    const QStringList familiesBasic = QFontDatabase::applicationFontFamilies(addedBasicFont);
+    const QString familyBasic = familiesBasic.first();
+    QFont fontBasic(familyBasic);
+    fontBasic.setPointSize(12);
+
+    a.setFont(fontBasic);
 
     MainWindow w;
     w.show();

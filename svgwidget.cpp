@@ -32,7 +32,7 @@ void SvgWidget::setText(const QString &text)
         delete character.svg;
     }
 
-    qDebug() << "a";
+    //qDebug() << "a";
 
     m_characters.clear();
 
@@ -52,7 +52,7 @@ void SvgWidget::setText(const QString &text)
 
         const QString svgPath = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("svgs/%1-still.svg").arg(codePoint));
         //QStringLiteral(":/svgs/%1-still.svg").arg(codePoint);
-        qDebug() << svgPath;
+        //qDebug() << svgPath;
 
         const QString gifPath = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("gifs/%1.gif").arg(codePoint));
             //QStringLiteral(":/gifs/%1.gif").arg(codePoint);
