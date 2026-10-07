@@ -1,0 +1,35 @@
+﻿<svg version="1.1" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="lightgray" stroke-dasharray="1,1" stroke-width="1" transform="scale(4, 4)">
+    <line x1="0" y1="0" x2="256" y2="256"/>
+    <line x1="256" y1="0" x2="0" y2="256"/>
+    <line x1="128" y1="0" x2="128" y2="256"/>
+    <line x1="0" y1="128" x2="256" y2="128"/>
+  </g>
+  <g transform="scale(1, -1) translate(0, -900)">
+    <style type="text/css">
+        .stroke1 {fill: #000000;}
+        .stroke2 {fill: #000000;}
+        .stroke3 {fill: #000000;}
+        .stroke4 {fill: #000000;}
+        .stroke5 {fill: #000000;}
+        .stroke6 {fill: #000000;}
+        .stroke7 {fill: #000000;}
+        .stroke8 {fill: #000000;}
+        .stroke9 {fill: #000000;}
+        .stroke10 {fill: #000000;}
+        .stroke11 {fill: #000000;}
+        .stroke12 {fill: #000000;}
+        .stroke13 {fill: #000000;}
+        .stroke14 {fill: #000000;}
+        .stroke15 {fill: #000000;}
+        .stroke16 {fill: #000000;}
+        .stroke17 {fill: #000000;}
+        .stroke18 {fill: #000000;}
+        .stroke19 {fill: #000000;}
+        .stroke20 {fill: #000000;}
+</style>
+
+    <path d="M 316 519 Q 318 511 331 499 Q 370 464 397 433 Q 410 421 427 421 Q 455 421 442 482 L 440 486 Q 428 509 374 527 Q 331 543 319 537 Q 314 533 316 519 Z" class="stroke1"/>
+    <path d="M 629 547 Q 609 514 531 429 Q 528 423 527 420 Q 525 412 538 415 Q 597 447 657 488 Q 700 517 719 524 Q 735 531 733 545 Q 731 563 699 584 Q 668 604 652 600 Q 649 600 647 600 Q 641 598 643 587 Q 644 564 629 547 Z" class="stroke2"/>
+<text x="650" y="592" style="transform-origin:650px 592px; transform:scale(1,-1);">2</text></g>
+</svg>
