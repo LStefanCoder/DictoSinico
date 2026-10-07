@@ -101,7 +101,7 @@
      <rect>
       <x>30</x>
       <y>500</y>
-      <width>731</width>
+      <width>741</width>
       <height>51</height>
      </rect>
     </property>
@@ -135,9 +135,9 @@
    <widget class="QLabel" name="hskValue">
     <property name="geometry">
      <rect>
-      <x>740</x>
+      <x>810</x>
       <y>510</y>
-      <width>49</width>
+      <width>51</width>
       <height>16</height>
      </rect>
     </property>
@@ -154,7 +154,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>550</y>
+      <y>560</y>
       <width>501</width>
       <height>80</height>
      </rect>
@@ -169,7 +169,7 @@
     <property name="geometry">
      <rect>
       <x>570</x>
-      <y>550</y>
+      <y>560</y>
       <width>75</width>
       <height>24</height>
      </rect>
@@ -182,7 +182,7 @@
     <property name="geometry">
      <rect>
       <x>570</x>
-      <y>600</y>
+      <y>620</y>
       <width>75</width>
       <height>24</height>
      </rect>
@@ -195,7 +195,7 @@
     <property name="geometry">
      <rect>
       <x>700</x>
-      <y>550</y>
+      <y>560</y>
       <width>111</width>
       <height>20</height>
      </rect>
@@ -208,7 +208,7 @@
     <property name="geometry">
      <rect>
       <x>700</x>
-      <y>590</y>
+      <y>620</y>
       <width>111</width>
       <height>20</height>
      </rect>

@@ -73,7 +73,17 @@ private:
     QListWidgetItem *currentItem;
     QString dictFilePath = "";
 
-    QVector<QPair<QString, int>> HSKTableRows;
+    //QPair<QString, int> HSKRow; //for the watcher
+    using HSKRows = QVector<QPair<QString, int>>;
+    HSKRows HSKTableRows;
+    //extern HSKRows HSKTableRows;
+    struct LoadResult {
+        QByteArray data1;
+        QByteArray data2;
+        HSKRows hskRows;
+    };
+
+    //QVector<QPair<QString, int>> HSKTableRows;
 
     bool diacriticsEnabled = false;
     bool colorPinyinEnabled = false;

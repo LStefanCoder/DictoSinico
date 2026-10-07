@@ -73,20 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
     //searching when pressing enter
     connect(ui->searchField, &QLineEdit::returnPressed, this, &MainWindow::on_searchButton_clicked);
 
-    /*//loading the fonts
-    const int addedFontLatin = QFontDatabase::addApplicationFont(":/fonts/Arimo-Regular.ttf");
-    const int addedFontSimplified = QFontDatabase::addApplicationFont(":/fonts/NotoSansSC-Regular.ttf");
-    const int addedFontTraditional = QFontDatabase::addApplicationFont(":/fonts/NotoSansTC-Regular.ttf");
-
-    //even if there is only one font, we still have to get the font family name
-    const QStringList familiesLatin = QFontDatabase::applicationFontFamilies(addedFontLatin);
-    const QStringList familiesSimplified = QFontDatabase::applicationFontFamilies(addedFontSimplified);
-    const QStringList familiesTraditional = QFontDatabase::applicationFontFamilies(addedFontTraditional);
-
-    const QString familyLatin = familiesLatin.first();
-    const QString familySimplified = familiesSimplified.first();
-    const QString familyTraditional = familiesTraditional.first();*/
-
+    //loading the fonts
     //setting font types
     QFont fontLatin(familyLatin);
     QFont fontSimplified(familySimplified);
@@ -101,6 +88,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->definitionSimp->setFont(fontSimplified);
     ui->definitionTrad->setFont(fontTraditional);
     ui->hskValue->setFont(fontLatin);
+
+    ui->definitionEng->setWordWrap(true);
 }
 
 MainWindow::~MainWindow()
@@ -145,8 +134,6 @@ static bool parseCedictLine(const QString &line,
 
 void MainWindow::loadDictionaryFile(const QString &filePath, const QString &filePath2)
 {
-    //qDebug() << filePath;
-    //qDebug() << filePath2;
     //creating the logic for the loading window to show during the loading of the dictionary
     auto* loading = new LoadingDialog(this);
 
@@ -154,12 +141,14 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
     loading->show();
 
     // Keep the dialog alive until work finishes
-    auto* watcher = new QFutureWatcher<std::pair<QByteArray, QByteArray>>(this);
+    auto* watcher = new QFutureWatcher<LoadResult>(this);
 
-    connect(watcher, &QFutureWatcher<QByteArray>::finished, this, [=]() {
-        // Retrieve results from the future and update your UI
-        auto [data1, data2] = watcher->result();
-        // ... parse data / update editor ...
+    connect(watcher, &QFutureWatcher<LoadResult>::finished, this, [this, watcher, loading]() {
+        const LoadResult result = watcher->result();
+
+        HSKTableRows = result.hskRows; // assign on the GUI thread
+
+        // Parse result.data1 / result.data2 and update widgets here.
 
         loading->close();
         loading->deleteLater();
@@ -168,17 +157,14 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
 
     QFile file(filePath);
 
-    watcher->setFuture(QtConcurrent::run([filePath, filePath2]() -> QPair<QByteArray, QByteArray> {
-        auto readAll = [](const QString& path) -> QByteArray {
-            QFile f(path);
-            if (!f.open(QIODevice::ReadOnly)) return {};
-            return f.readAll();
-        };
-
-        return { readAll(filePath), readAll(filePath2) };
+    watcher->setFuture(QtConcurrent::run([this, filePath, filePath2]() {
+        LoadResult result;
+        result.hskRows = this->loadCsv_col1Text_col2Int(filePath2);
+        return result;
     }));
 
-    HSKTableRows = MainWindow::loadCsv_col1Text_col2Int(filePath2);
+    //HSKTableRows = MainWindow::loadCsv_col1Text_col2Int(filePath2);
+    qDebug() << HSKTableRows;
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Cannot open dictionary file!");
@@ -227,17 +213,33 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
         ui->tableWidget->setItem(row, 1, new QTableWidgetItem(simplified));
         ui->tableWidget->setItem(row, 2, new QTableWidgetItem(pinyin));
         ui->tableWidget->setItem(row, 3, new QTableWidgetItem(meanings.join("; ")));
+
+        //setting the fonts of the table
+        QFont fontLatin(familyLatin);
+        QFont fontSimplified(familySimplified);
+        QFont fontTraditional(familyTraditional);
+
+        fontLatin.setPointSize(11);
+        fontSimplified.setPointSize(11);
+        fontTraditional.setPointSize(11);
+
+        QTableWidgetItem *w = ui->tableWidget->item(row, 0);
+        QTableWidgetItem *w2 = ui->tableWidget->item(row, 1);
+        QTableWidgetItem *w3 = ui->tableWidget->item(row, 2);
+        QTableWidgetItem *w4 = ui->tableWidget->item(row, 3);
+
+        w->setFont(fontTraditional);
+        w2->setFont(fontSimplified);
+        w3->setFont(fontLatin);
+        w4->setFont(fontLatin);
     }
 
     //setting the headers again, otherwise the headers would get replaced by the default numbers
     QStringList headers = {"Traditional", "Simplified", "Pinyin", "Definition"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
-
+    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     file.close();
-
-
-    //qDebug() << HSKTableRows;
 
     emit dictionaryLoaded(ui->tableWidget->rowCount());
 
@@ -257,7 +259,6 @@ void MainWindow::on_searchButton_clicked()
         return;
     }
 
-
     // Clear previous selection before new search
     QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
     foreach (QTableWidgetItem *item, selectedItems) {
@@ -275,20 +276,6 @@ void MainWindow::on_searchButton_clicked()
         QTableWidgetItem *w2 = ui->tableWidget->item(i, 1);
         QTableWidgetItem *w3 = ui->tableWidget->item(i, 2);
         QTableWidgetItem *w4 = ui->tableWidget->item(i, 3);
-
-        //setting the fonts of the table
-        /*QFont fontLatin(familyLatin);
-        QFont fontSimplified(familySimplified);
-        QFont fontTraditional(familyTraditional);
-
-        fontLatin.setPointSize(11);
-        fontSimplified.setPointSize(11);
-        fontTraditional.setPointSize(11);
-
-        w->setFont(fontTraditional);
-        w2->setFont(fontSimplified);
-        w3->setFont(fontLatin);
-        w4->setFont(fontLatin);*/
 
         if ((w && w->text().contains(query, Qt::CaseInsensitive)) || (w2 && w2->text().contains(query, Qt::CaseInsensitive)) || (w3 && w3->text().contains(query, Qt::CaseInsensitive)) || (w4 && w4->text().contains(query, Qt::CaseInsensitive))) {
             // Select the entire row when matching word is found
@@ -391,7 +378,6 @@ void MainWindow::on_TableSelectionChanged()
 
                 else
                 {
-                    //qDebug() << 'false';
                     coloredPinyinParts.append(pinyinParts[i]);
                 }
 
@@ -425,10 +411,11 @@ void MainWindow::on_TableSelectionChanged()
     if (HSKLevelEnabled == true)
     {
         QString HSKTest;
-        //qDebug() << textAt(1);
         HSKTest = MainWindow::getHSKNumber(textAt(1));
 
         ui->hskValue->setText(HSKTest);
+        //reducing the font size of the HSK label
+        //ui->hskValue->setPointSize(11);
     }
     else
     {
@@ -436,7 +423,6 @@ void MainWindow::on_TableSelectionChanged()
         ui->hskValue->setText(" ");
     }
 
-    qDebug() << textAt(1);
     ui->definitionSimp->setText(textAt(1));
     ui->definitionTrad->setText(textAt(0));
 
@@ -790,11 +776,11 @@ bool MainWindow::isValidPinyin(QString input)
 
 QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString& filePath)
 {
-    qDebug() << filePath;
     QVector<QPair<QString, int>> rows;
 
     QFile file(filePath);
-    //if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        qDebug() << "wrong";
         //return rows;
 
     QTextStream in(&file);
@@ -808,8 +794,6 @@ QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString&
         if (parts.size() < 2) continue;
 
         const QString col1 = parts.at(0).trimmed();
-
-        qDebug() << col1;
 
         bool ok = false;
         const int col2 = parts.at(1).trimmed().toInt(&ok);
@@ -826,19 +810,14 @@ QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString&
 QString MainWindow::getHSKNumber(QString simp)
 {
     //HSKTableRows was declared as a private variable of MainWindo
-    QVector<QPair<QString, int>> HSKTable = HSKTableRows;
+   // QVector<QPair<QString, int>> HSKTable = HSKTableRows;
     int HSKNumber = 0;
 
-    qDebug() << "HSKTable size:" << HSKTable.size();
-    qDebug() << "HSKTable is empty:" << HSKTable.isEmpty();
 
     //looping through all the characters of the simplified word, looking for the simplified character in the HSK table
     for (QChar ch : simp) {
-        //qDebug() << "A";
-        for (const auto& [character, number] : HSKTable)
+        for (const auto& [character, number] : HSKTableRows)
         {
-            qDebug() << character;
-            qDebug() << QString(ch);
             //the vector contains QStrings, not QChars
 
             if(character == QString(ch))
