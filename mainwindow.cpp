@@ -360,7 +360,7 @@ void MainWindow::on_TableSelectionChanged()
         }
         else
         {
-            QString pinyinString = textAt(2);
+            //QString pinyinString = textAt(2);
             QStringList pinyinParts = textAt(2).split(QChar(' '));
             QStringList coloredPinyinParts = {};
             for (int i=0; i < pinyinParts.length(); i++)
@@ -391,23 +391,55 @@ void MainWindow::on_TableSelectionChanged()
     }
     else
     {
-        //getting all the syllables in the string, converting them to the diacritics format and concatenating them back to a string
-        QString pinyinString = textAt(2);
-        QStringList pinyinParts = textAt(2).split(QChar(' ')); //splitting on the space character to get the individual syllables
-        QStringList diacriticPinyinParts = {};
+        if (colorPinyinEnabled == false)
+        {
+            //getting all the syllables in the string, converting them to the diacritics format and concatenating them back to a string
+            QString pinyinString = textAt(2);
+            QStringList pinyinParts = textAt(2).split(QChar(' ')); //splitting on the space character to get the individual syllables
+            QStringList diacriticPinyinParts = {};
 
-        //iterating over the split strings
-        for (const QString& syllable : pinyinParts) {
-            diacriticPinyinParts.append(numberedPinyinToDiacritics(syllable));
+            //iterating over the split strings
+            for (const QString& syllable : pinyinParts) {
+                diacriticPinyinParts.append(numberedPinyinToDiacritics(syllable));
+            }
+
+            //joining the QStringList to a QString with no separator
+            QString diacriticsPinyin = diacriticPinyinParts.join(' ');
+            ui->definitionPinyin->setText(diacriticsPinyin);
         }
+        else
+        {
+            QStringList pinyinParts = textAt(2).split(QChar(' '));
+            QStringList allPinyinParts = {};
+            for (int i=0; i < pinyinParts.length(); i++)
+            {
+                //checking each syllable for a valid pinyin string
+                if (isValidPinyin(pinyinParts[i]) == true)
+                {
+                    //getting the last character of the syllable and converting it to an integer
+                    QChar intAtTheEnd = pinyinParts[i].back();
+                    int lastDigit = intAtTheEnd.digitValue();
 
-        //joining the QStringList to a QString with no separator
-        QString diacriticsPinyin = diacriticPinyinParts.join(' ');
-        ui->definitionPinyin->setText(diacriticsPinyin);
+                    //since the second function can take two arguments, it is convenient to use them in this order
+                    QString diacriticSyllable = numberedPinyinToDiacritics(pinyinParts[i]);
+
+                    allPinyinParts.append(convertToColoredSpan(diacriticSyllable, lastDigit));
+                }
+
+                else
+                {
+                    allPinyinParts.append(pinyinParts[i]);
+                }
+
+            }
+
+            //unifying the parts of the stringlist into one string
+            QString allPinyinTogether = allPinyinParts.join(", ");
+            ui->definitionPinyin->setText(allPinyinTogether);
+        }
     }
 
     //the HSK level text
-
     if (HSKLevelEnabled == true)
     {
         QString HSKTest;
