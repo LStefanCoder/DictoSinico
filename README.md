@@ -11,10 +11,18 @@ The user can enable three additional options in preferences: showing pinyin with
 ## License
 
 The original code is under the Gnu General Public License v. 3.0. (https://www.gnu.org/licenses/gpl-3.0.html) The CC-CEDICT (https://cc-cedict.org/wiki/) text file is under the Creative Commons Attribution-Share Alike 3.0 License (http://creativecommons.org/licenses/by-sa/3.0/). The CSV file with the HSK level for individual characters comes from this Kaggle dataset by 
-Rudd Fawcett: https://www.kaggle.com/datasets/ruddfawcett/hanzidb and is under the Open Data Commons Open Database License (ODbL) v1.0. (https://opendatacommons.org/licenses/odbl/1-0/) All three fonts used in the software are from Google Fonts and under the SIL Open Font License (https://scripts.sil.org/OFL). The makemeahanzi characters (ths SVG files and the GIF files generated from them) are under the Arphic Public License (https://ftp.gnu.org/non-gnu/chinese-fonts-truetype/LICENSE).
+Rudd Fawcett: https://www.kaggle.com/datasets/ruddfawcett/hanzidb and is under the Open Data Commons Open Database License (ODbL) v1.0. (https://opendatacommons.org/licenses/odbl/1-0/) All three fonts used in the software are from Google Fonts and under the SIL Open Font License (https://scripts.sil.org/OFL). The program uses the theme "Combinear" , under the MIT License. The makemeahanzi characters (ths SVG files and the GIF files generated from them) are under the Arphic Public License (https://ftp.gnu.org/non-gnu/chinese-fonts-truetype/LICENSE).
 
 The makemeahanzi characters in the "svgs/" folder simply display the characters in black, while those in the "gifs/" folder contain the same animation as those in the original "svgs" folder of the makemehanzi project. (https://github.com/skishore/makemeahanzi)
 
 ## Building
 
 The project uses Qt version 17 with QMake. Using QtCreator as IDE is recommended. 
+
+## Screenshots
+
+<img src="screenshots/DictoSinicoScreenshot_1.jpg" alt="Screenshot 1" style="width: 75%;">
+
+<img src="screenshots/DictoSinicoScreenshot_2.jpg" alt="Screenshot 2" style="width: 75%;">
+
+<img src="screenshots/DictoSinicoScreenshot_3.jpg" alt="Screenshot 3" style="width: 75%;">

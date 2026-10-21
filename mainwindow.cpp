@@ -32,10 +32,6 @@
 #include <QFont>
 #include <QFontDatabase>
 
-//themes can be downloaded here: https://qt-material.readthedocs.io/en/latest/
-//https://github.com/hubenchang0515/QtTheme
-//https://qss-stock.devsecstudio.com/documentation.php
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -81,17 +77,19 @@ MainWindow::MainWindow(QWidget *parent)
     //because the definiton sometimes has Chinese words in it, and the other font looks ugly, it is set to the Chinese font
     //a separate QFont is needed due to the different point sizes
     QFont fontEnglishDefinition(familySimplified);
+    QFont fontHSK(familyLatin);
 
     fontLatin.setPointSize(14);
     fontSimplified.setPointSize(20);
     fontTraditional.setPointSize(20);
     fontEnglishDefinition.setPointSize(14);
+    fontHSK.setPointSize(12);
 
     ui->definitionEng->setFont(fontEnglishDefinition);
     ui->definitionPinyin->setFont(fontLatin);
     ui->definitionSimp->setFont(fontSimplified);
     ui->definitionTrad->setFont(fontTraditional);
-    ui->hskValue->setFont(fontLatin);
+    ui->hskValue->setFont(fontHSK);
 
     ui->definitionEng->setWordWrap(true);
 }
@@ -206,8 +204,8 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
         int row = ui->tableWidget->rowCount();
         ui->tableWidget->insertRow(row);
 
-        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(traditional));
-        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(simplified));
+        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(traditional));
+        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(simplified));
         ui->tableWidget->setItem(row, 2, new QTableWidgetItem(pinyin));
         ui->tableWidget->setItem(row, 3, new QTableWidgetItem(meanings.join("; ")));
 
@@ -220,8 +218,8 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
         fontSimplified.setPointSize(11);
         fontTraditional.setPointSize(11);
 
-        QTableWidgetItem *w = ui->tableWidget->item(row, 0);
-        QTableWidgetItem *w2 = ui->tableWidget->item(row, 1);
+        QTableWidgetItem *w = ui->tableWidget->item(row, 1);
+        QTableWidgetItem *w2 = ui->tableWidget->item(row, 0);
         QTableWidgetItem *w3 = ui->tableWidget->item(row, 2);
         QTableWidgetItem *w4 = ui->tableWidget->item(row, 3);
 
@@ -237,7 +235,7 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
     }
 
     //setting the headers again, otherwise the headers would get replaced by the default numbers
-    QStringList headers = {"Traditional", "Simplified", "Pinyin", "Definition"};
+    QStringList headers = {"Simplified", "Traditional", "Pinyin", "Definition"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
@@ -249,6 +247,7 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
 
 void MainWindow::on_searchButton_clicked()
 {
+
     //if there has been a search made already, lines are hidden
     //unhiding all hidden rows
     for (int i = 0; i < ui->tableWidget->rowCount(); ++i)
@@ -273,8 +272,8 @@ void MainWindow::on_searchButton_clicked()
     // if you want to highlight the query inside the words:
     for (int i = 0; i < ui->tableWidget->rowCount(); ++i) {
 
-        QTableWidgetItem *w = ui->tableWidget->item(i, 0);
-        QTableWidgetItem *w2 = ui->tableWidget->item(i, 1);
+        QTableWidgetItem *w = ui->tableWidget->item(i, 1);
+        QTableWidgetItem *w2 = ui->tableWidget->item(i, 0);
         QTableWidgetItem *w3 = ui->tableWidget->item(i, 2);
         QTableWidgetItem *w4 = ui->tableWidget->item(i, 3);
 
@@ -299,10 +298,8 @@ void MainWindow::on_searchButton_clicked()
         }
     }
 
-    // Show info if no matches or list empty
-    if (ui->tableWidget->rowCount() == 0) {
-        QMessageBox::information(this, "Info", "Dictionary not loaded. Load a file first.");
-    } else if (!found && query.size() > 0) {
+    // Show info if no matches
+    if (!found && query.size() > 0) {
         QMessageBox::information(this, "Info", "No matching entries found.");
     }
 }
@@ -444,7 +441,7 @@ void MainWindow::on_tableSelection_changed()
     if (HSKLevelEnabled == true)
     {
         QString HSKTest;
-        HSKTest = MainWindow::getHSKNumber(textAt(1));
+        HSKTest = MainWindow::getHSKNumber(textAt(0));
 
         ui->hskValue->setText(HSKTest);
         //reducing the font size of the HSK label
@@ -456,19 +453,19 @@ void MainWindow::on_tableSelection_changed()
         ui->hskValue->setText(" ");
     }
 
-    ui->definitionSimp->setText(textAt(1));
-    ui->definitionTrad->setText(textAt(0));
+    ui->definitionSimp->setText(textAt(0));
+    ui->definitionTrad->setText(textAt(1));
 
     //setting the svg files
     if (simplifiedDisplayed == true)
     {
-        displayedText = textAt(1);
-        ui->characterWidget->setText(textAt(1));
+        displayedText = textAt(0);
+        ui->characterWidget->setText(textAt(0));
     }
     else
     {
-        displayedText = textAt(0);
-        ui->characterWidget->setText(textAt(0));
+        displayedText = textAt(1);
+        ui->characterWidget->setText(textAt(1));
     }
 
 }
@@ -777,6 +774,7 @@ bool MainWindow::isValidPinyin(QString input)
         // u finals
         QStringLiteral("u"),
         QStringLiteral("ua"),
+        QStringLiteral("ue"),
         QStringLiteral("uo"),
         QStringLiteral("uai"),
         QStringLiteral("ui"),
