@@ -47,7 +47,7 @@ private slots:
     void on_traditionalRadio_clicked();
 
 
-    void on_TableSelectionChanged();
+    void on_tableSelection_changed();
 
     void on_actionAbout_triggered(); // name must match your Designer action objectName; calling the about window from the addressbar
 
@@ -73,17 +73,13 @@ private:
     QListWidgetItem *currentItem;
     QString dictFilePath = "";
 
-    //QPair<QString, int> HSKRow; //for the watcher
     using HSKRows = QVector<QPair<QString, int>>;
     HSKRows HSKTableRows;
-    //extern HSKRows HSKTableRows;
     struct LoadResult {
         QByteArray data1;
         QByteArray data2;
         HSKRows hskRows;
     };
-
-    //QVector<QPair<QString, int>> HSKTableRows;
 
     bool diacriticsEnabled = false;
     bool colorPinyinEnabled = false;

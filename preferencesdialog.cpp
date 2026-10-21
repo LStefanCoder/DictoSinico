@@ -8,6 +8,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent, bool diacriticValue, bool 
 {
     ui->setupUi(this);
 
+    //just like the main window, it shouldn't be resized to a smaller than original size
+    this->setMinimumSize(this->size());
+    //in this version, the window can't be enlarged either
+    this->setMaximumSize(this->size());
+    //giving a window title
+    this->setWindowTitle("Preferences");
+
     //setting the value of the checkbox to what is supposed to be when the preferences window is called again
     ui->diacriticBox->setChecked(diacriticValue);
 

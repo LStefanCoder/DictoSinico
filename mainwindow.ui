@@ -6,86 +6,50 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>871</width>
-    <height>703</height>
+    <width>978</width>
+    <height>733</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="searchButton">
-    <property name="geometry">
-     <rect>
-      <x>440</x>
-      <y>20</y>
-      <width>75</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Search</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="searchField">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>20</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="clearButton">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>20</y>
-      <width>75</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Clear</string>
-    </property>
-   </widget>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>60</y>
-      <width>751</width>
-      <height>301</height>
+      <width>941</width>
+      <height>351</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QLabel" name="definitionSimp">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>380</y>
-      <width>361</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>20</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Simp</string>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
    </widget>
    <widget class="QLabel" name="definitionPinyin">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>450</y>
-      <width>731</width>
+      <x>20</x>
+      <y>480</y>
+      <width>931</width>
       <height>41</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="font">
      <font>
@@ -93,17 +57,23 @@
      </font>
     </property>
     <property name="text">
-     <string>Pinyin</string>
+     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="definitionEng">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>500</y>
-      <width>741</width>
+      <x>20</x>
+      <y>530</y>
+      <width>931</width>
       <height>51</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="font">
      <font>
@@ -111,32 +81,14 @@
      </font>
     </property>
     <property name="text">
-     <string>Eng</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="definitionTrad">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>370</y>
-      <width>351</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>22</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Trad</string>
+     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="hskValue">
     <property name="geometry">
      <rect>
-      <x>810</x>
-      <y>510</y>
+      <x>880</x>
+      <y>550</y>
       <width>51</width>
       <height>16</height>
      </rect>
@@ -147,75 +99,151 @@
      </font>
     </property>
     <property name="text">
-     <string>HSK</string>
+     <string/>
     </property>
    </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>560</y>
-      <width>501</width>
-      <height>80</height>
+      <x>20</x>
+      <y>590</y>
+      <width>931</width>
+      <height>91</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="characterWLayout">
-     <item>
-      <widget class="SvgWidget" name="characterWidget" native="true"/>
+    <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0">
+     <item row="0" column="2">
+      <widget class="QRadioButton" name="simplifiedRadioButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Simplified</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QRadioButton" name="traditionalRadioButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Traditional</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="animationStopButton">
+       <property name="text">
+        <string>Stop</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" rowspan="2">
+      <layout class="QHBoxLayout" name="characterWLayout" stretch="0">
+       <item>
+        <widget class="SvgWidget" name="characterWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="animationStartButton">
+       <property name="text">
+        <string>Animate</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="animationStartButton">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>560</y>
-      <width>75</width>
-      <height>24</height>
+      <x>20</x>
+      <y>430</y>
+      <width>941</width>
+      <height>41</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Animate</string>
-    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="definitionSimp">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>20</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="definitionTrad">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>22</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
-   <widget class="QPushButton" name="animationStopButton">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>620</y>
-      <width>75</width>
-      <height>24</height>
+      <x>150</x>
+      <y>20</y>
+      <width>681</width>
+      <height>26</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Stop</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="simplifiedRadioButton">
-    <property name="geometry">
-     <rect>
-      <x>700</x>
-      <y>560</y>
-      <width>111</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Simplified</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="traditionalRadioButton">
-    <property name="geometry">
-     <rect>
-      <x>700</x>
-      <y>620</y>
-      <width>111</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Traditional</string>
-    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="searchField"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="searchButton">
+       <property name="text">
+        <string>Search</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clearButton">
+       <property name="text">
+        <string>Clear</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -223,7 +251,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>871</width>
+     <width>978</width>
      <height>22</height>
     </rect>
    </property>

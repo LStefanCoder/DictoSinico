@@ -56,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //this is for when a row of the table was selected
     connect(ui->tableWidget, &QTableWidget::itemSelectionChanged,
-            this, &MainWindow::on_TableSelectionChanged);
+            this, &MainWindow::on_tableSelection_changed);
 
     ui->searchField->setText("");
 
@@ -78,12 +78,16 @@ MainWindow::MainWindow(QWidget *parent)
     QFont fontLatin(familyLatin);
     QFont fontSimplified(familySimplified);
     QFont fontTraditional(familyTraditional);
+    //because the definiton sometimes has Chinese words in it, and the other font looks ugly, it is set to the Chinese font
+    //a separate QFont is needed due to the different point sizes
+    QFont fontEnglishDefinition(familySimplified);
 
     fontLatin.setPointSize(14);
     fontSimplified.setPointSize(20);
     fontTraditional.setPointSize(20);
+    fontEnglishDefinition.setPointSize(14);
 
-    ui->definitionEng->setFont(fontLatin);
+    ui->definitionEng->setFont(fontEnglishDefinition);
     ui->definitionPinyin->setFont(fontLatin);
     ui->definitionSimp->setFont(fontSimplified);
     ui->definitionTrad->setFont(fontTraditional);
@@ -137,16 +141,16 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
     //creating the logic for the loading window to show during the loading of the dictionary
     auto* loading = new LoadingDialog(this);
 
-    // Show immediately
+    //showing the dialog
     loading->show();
 
-    // Keep the dialog alive until work finishes
+    //keeping the dialog alive until work finishes
     auto* watcher = new QFutureWatcher<LoadResult>(this);
 
     connect(watcher, &QFutureWatcher<LoadResult>::finished, this, [this, watcher, loading]() {
         const LoadResult result = watcher->result();
 
-        HSKTableRows = result.hskRows; // assign on the GUI thread
+        //HSKTableRows = result.hskRows; // assign on the GUI thread
 
         // Parse result.data1 / result.data2 and update widgets here.
 
@@ -160,11 +164,9 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
     watcher->setFuture(QtConcurrent::run([this, filePath, filePath2]() {
         LoadResult result;
         result.hskRows = this->loadCsv_col1Text_col2Int(filePath2);
+        HSKTableRows = result.hskRows; // assign on the GUI thread
         return result;
     }));
-
-    //HSKTableRows = MainWindow::loadCsv_col1Text_col2Int(filePath2);
-    qDebug() << HSKTableRows;
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "Error", "Cannot open dictionary file!");
@@ -191,20 +193,15 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
         QString traditional, simplified, pinyin;
         QStringList meanings;
 
-        // Skip comments and empty lines
+        //skip comments and empty lines
         if (line.trimmed().startsWith("#") || line.trimmed().isEmpty()) {
             continue;
         }
 
-        //if the line does not contain the required format and is therefore not parsable,
-        //, continue
+        //continue if the line cannot be parsed
         if (!parseCedictLine(line, traditional, simplified, pinyin, meanings))
             continue;
 
-
-        // Parse CC-CEDICT format. Since CC-CEDICT has no delimiters,
-
-        //the order is: traditional, simplified, pinyin in brackets and definition in slashes
 
         int row = ui->tableWidget->rowCount();
         ui->tableWidget->insertRow(row);
@@ -232,6 +229,11 @@ void MainWindow::loadDictionaryFile(const QString &filePath, const QString &file
         w2->setFont(fontSimplified);
         w3->setFont(fontLatin);
         w4->setFont(fontLatin);
+
+        //clearing the bold from the heading of the first column
+        QFont headerFont = ui->tableWidget->horizontalHeader()->font();
+        headerFont.setBold(false);
+        ui->tableWidget->horizontalHeader()->setFont(headerFont);
     }
 
     //setting the headers again, otherwise the headers would get replaced by the default numbers
@@ -265,7 +267,6 @@ void MainWindow::on_searchButton_clicked()
         item->setSelected(false);
     }
 
-    //int currentIndex = ui->tableWidget->currentIndex();
     bool found = false;
 
     // Since we are reading from memory, search is fast for standard RAM usage
@@ -322,7 +323,7 @@ void MainWindow::on_clearButton_clicked()
 }
 
 
-void MainWindow::on_TableSelectionChanged()
+void MainWindow::on_tableSelection_changed()
 {
     //clear the labels if there is nothing is selected
     if (!ui->tableWidget->selectionModel()->hasSelection()) {
@@ -474,8 +475,15 @@ void MainWindow::on_TableSelectionChanged()
 
 void MainWindow::on_actionAbout_triggered()
 {
+    //breaking up each line for e
     QMessageBox::about(this, tr("About"),
-                       tr("CeDict GUI\nVersion 1.0\n\nShort description..."));
+                       tr("DictoSinico v. 0.1 \n\nA GUI for the free Chinese-English dictionary CC-CEDICT \nReleased under GNU GPL v.3.0 "
+                          "\n\nSee latest version at https://github.com/LStefanCoder/dictosinico"
+                          "\n\nCredits: CC-CEDICT under CC-BY-SA 2.0 \nCSV file with HSK values from a Kaggle dataset by Rudd Fawcett under ODbL v.1.0. "
+                          "\nAll fonts are from Google Fonts and under the SIL OFL. \nThe animated characters and SVG files are from Makemeahanzi, under the Arphic Public License."
+                          "\nCombinear theme from DevSec Studio under the MIT License."
+                          "\nAll links found in the readme on Github."
+                          ));
 }
 
 void MainWindow::on_actionPreferences_triggered()
@@ -510,7 +518,7 @@ void MainWindow::on_HSKChanged(bool enabled)
 //this function gives an appropriate HTML string for a colored pinyin representation
 QString MainWindow::convertToColoredSpan(QString s, int n)
 {
-    //going through all four tones, and returning the input string if the tone is 5
+    //going through all four tones, and returning the input string if the tone is 5 and colored HTML code if it is one of the other tones
     if (n == 1)
     {
         return "<span style='color:#ff0000;'>" + s + "</span>";
@@ -806,11 +814,13 @@ bool MainWindow::isValidPinyin(QString input)
     return finals.contains(finalPart);
 }
 
+//function reading the CSV with the HSK values
 QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString& filePath)
 {
     QVector<QPair<QString, int>> rows;
 
     QFile file(filePath);
+    //the following function is needed, otherwise the function won't work
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         qDebug() << "wrong";
         //return rows;
@@ -841,8 +851,7 @@ QVector<QPair<QString, int>> MainWindow::loadCsv_col1Text_col2Int(const QString&
 //getting the correct HSK number
 QString MainWindow::getHSKNumber(QString simp)
 {
-    //HSKTableRows was declared as a private variable of MainWindo
-   // QVector<QPair<QString, int>> HSKTable = HSKTableRows;
+    //HSKTableRows was declared as a private variable of MainWindow
     int HSKNumber = 0;
 
 

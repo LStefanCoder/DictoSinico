@@ -15,6 +15,7 @@ SvgWidget::SvgWidget(QWidget *parent)
     setMinimumSize(300, 160);
     setAttribute(Qt::WA_OpaquePaintEvent, false);
 
+
     m_gifTimer.setSingleShot(true);
 
     connect(&m_gifTimer,
@@ -51,47 +52,12 @@ void SvgWidget::setText(const QString &text)
             QString::number(character.unicode(), 10);
 
         const QString svgPath = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("svgs/%1-still.svg").arg(codePoint));
-        //QStringLiteral(":/svgs/%1-still.svg").arg(codePoint);
-        //qDebug() << svgPath;
 
         const QString gifPath = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("gifs/%1.gif").arg(codePoint));
-            //QStringLiteral(":/gifs/%1.gif").arg(codePoint);
 
         // Ignore characters for which neither file exists.
         if (!QFile::exists(svgPath) && !QFile::exists(gifPath))
             continue;
-
-        /*auto *svg = QFile::exists(svgPath)
-                        ? new QSvgRenderer(svgPath, this)
-                        : nullptr;
-
-        auto *movie = QFile::exists(gifPath)
-                          ? new QMovie(gifPath, QByteArray(), this)
-                          : nullptr;
-
-        if (movie) {
-            movie->setCacheMode(QMovie::CacheAll);
-
-            connect(movie,
-                    &QMovie::frameChanged,
-                    this,
-                    [this](int) {
-                        update();
-                    });
-        }
-
-        if (svg) {
-            connect(svg,
-                    &QSvgRenderer::repaintNeeded,
-                    this,
-                    QOverload<>::of(&SvgWidget::update));
-        }
-
-        m_characters.append({
-            codePoint,
-            movie,
-            svg
-        });*/
 
         auto *movie = new QMovie(gifPath, QByteArray(), this);
         movie->setCacheMode(QMovie::CacheAll);
@@ -141,8 +107,6 @@ void SvgWidget::play()
         }
 
         if (character.svg) {
-            //character.svg->setAnimationEnabled(false);
-            //character.svg->setCurrentFrame(0);
         }
     }
 
@@ -253,65 +217,6 @@ void SvgWidget::reset()
     update();
 }
 
-/*QRectF SvgWidget::targetRect(int index, const QSizeF &sourceSize) const
-{
-    if (!sourceSize.isValid() || sourceSize.isEmpty())
-        return {};
-
-    const qreal margin = 0.0;
-    const qreal gap = width() / 20.0;
-
-    const qreal availableWidth =
-        width() - 2.0 * margin;
-
-    const qreal availableHeight =
-        height();
-
-    const qreal scale = qMin(
-        availableHeight / sourceSize.height(),
-        availableWidth / sourceSize.width()
-        );
-
-    const QSizeF renderedSize =
-        sourceSize * scale * 0.35;
-
-    qreal x = margin;
-
-    for (int i = 0; i < index; ++i) {
-        const CharacterRenderer &previous = m_characters[i];
-
-        QSizeF previousSize;
-
-        if (m_showingGifs && previous.movie) {
-            previousSize = previous.movie->currentImage().size();
-        } else if (previous.svg && previous.svg->isValid()) {
-            previousSize = previous.svg->defaultSize();
-
-            if (!previousSize.isValid() || previousSize.isEmpty())
-                previousSize = previous.svg->viewBoxF().size();
-        }
-
-        if (!previousSize.isEmpty()) {
-            const qreal previousScale = qMin(
-                availableHeight / previousSize.height(),
-                availableWidth / previousSize.width()
-                );
-
-            x += previousSize.width() *
-                     previousScale *
-                     0.35 +
-                 gap;
-        }
-    }
-
-    const qreal y =
-        (height() - renderedSize.height()) / 5.0;
-
-    return QRectF(x, y,
-                  renderedSize.width(),
-                  renderedSize.height());
-}*/
-
 QRectF SvgWidget::targetRect(int index, const QSizeF &sourceSize) const
 {
     if (!sourceSize.isValid() || sourceSize.isEmpty())
@@ -376,6 +281,8 @@ void SvgWidget::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
+    //filling the background with white, so it doesn't get overridden by qss styling
+    painter.fillRect(rect(), QColor("#dbdbdb"));
 
     if (m_characters.isEmpty())
         return;
