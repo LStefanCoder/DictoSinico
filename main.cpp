@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     a.setApplicationName("DictoSinico");
 
     //template code based on https://qss-stock.devsecstudio.com/documentation.php
-    QFile file("C:/Users/User/Documents/Projects/2026/CeDict/themes/Combinear.qss");
+    QFile file(":/themes/Combinear.qss");
     file.open(QFile::ReadOnly);
 
     //commented stylesheet out

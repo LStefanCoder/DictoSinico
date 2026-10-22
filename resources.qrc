@@ -5,5 +5,6 @@
         <file>fonts/Arimo-Regular.ttf</file>
         <file>fonts/NotoSansSC-Regular.ttf</file>
         <file>fonts/NotoSansTC-Regular.ttf</file>
+        <file>themes/Combinear.qss</file>
     </qresource>
 </RCC>

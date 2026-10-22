@@ -1,5 +1,5 @@
 // LoadingDialog.cpp
-#include "LoadingDialog.h"
+#include "loadingdialog.h"
 #include <QLabel>
 #include <QVBoxLayout>
 
